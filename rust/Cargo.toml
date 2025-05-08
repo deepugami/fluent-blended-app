@@ -1,0 +1,24 @@
+[package]
+edition = "2021"
+name = "prb_math_wasm"
+version = "0.1.0"
+
+[lib]
+crate-type = ["cdylib"] # This ensures we output a .wasm file
+path = "src/lib.rs"
+
+[dependencies]
+alloc = { version = "1.0.0", package = "rustc-std-workspace-alloc", optional = true }
+fluentbase-sdk = { git = "https://github.com/fluentlabs-xyz/fluentbase", default-features = false }
+libm = "0.2.8"
+
+[features]
+default = []
+std = []
+
+[profile.release]
+lto = true
+opt-level = 'z'
+panic = "abort"
+strip = true
+codegen-units = 1 
