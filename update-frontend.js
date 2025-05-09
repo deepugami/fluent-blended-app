@@ -4,15 +4,15 @@ const path = require('path');
 
 try {
     // Deployed contract addresses
-    const rustContractAddress = "0xEd4da3497bcBFff1F944eB566E7D33e812C43F7a";
-    const solidityContractAddress = "0x8D4E34c7A6a757574665CaF2E23684b1dff31Fda";
+    const rustContractAddress = "0xaf3d76b5294c82c080c93b4c964cdf6a15f29d1e";
+    const solidityContractAddress = "0x2ed29d982b0120d49899a7cc7afe7f5d5435bc56";
     
     // Fluent Network configuration
     const FLUENT_NETWORK = {
       name: 'Fluent Developer Preview',
       chainId: 20993,  // Fluent Developer Preview chain ID
-      rpcUrl: 'https://rpc.dev.thefluent.xyz/',  // Fluent Developer Preview RPC URL
-      blockExplorer: 'https://blockscout.dev.thefluent.xyz/'  // Fluent Developer Preview explorer URL
+      rpcUrl: 'https://rpc.dev.gblend.xyz',  // Fluent Developer Preview RPC URL
+      blockExplorer: 'https://explorer.dev.gblend.xyz'  // Fluent Developer Preview explorer URL
     };
     
     // Summary of deployment process
@@ -32,9 +32,8 @@ try {
     
     // List of files to update
     const frontendFiles = [
-        path.join(__dirname, '..', '..', 'prb-math-react-frontend', 'src', 'App.jsx'),
-        path.join(__dirname, '..', 'frontend', 'js', 'app.js'),
-        path.join(__dirname, '..', '..', 'frontend', 'js', 'app.js')
+        path.join(__dirname, 'prb-math-react-frontend', 'src', 'App.jsx'),
+        path.join(__dirname, 'frontend', 'js', 'app.js')
     ];
     
     console.log('Files to check:');

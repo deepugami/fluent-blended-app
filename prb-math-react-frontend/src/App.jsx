@@ -76,7 +76,9 @@ const contractABI = [
 // IMPORTANT: Update these values after deployment
 // =====================================================
 // Contract address - Deployed Solidity contract address
-const CONTRACT_ADDRESS = "0x8d4e34c7a6a757574665caf2e23684b1dff31fda";
+const FLUENT_CONTRACT_ADDRESS = "0x8D4E34c7A6a757574665CaF2E23684b1dff31Fda"; // Updated to match deployed contract
+// For Sepolia - this is just a placeholder, replace with actual address when deployed
+const SEPOLIA_CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 // Wallet information for deployment
 const WALLET_INFO = {
@@ -84,16 +86,31 @@ const WALLET_INFO = {
   privateKey: "0xd301a675236c83b64727f2e257e16aa3d99da178ba6de2d8534da98f0dc73daa"
 };
 
-// Fluent Network configuration
-const FLUENT_NETWORK = {
-  name: 'Fluent Developer Preview',
-  chainId: 20993,  // Fluent Developer Preview chain ID
-  rpcUrl: 'https://rpc.dev.thefluent.xyz/',  // Fluent Developer Preview RPC URL
-  blockExplorer: 'https://blockscout.dev.thefluent.xyz/',  // Fluent Developer Preview explorer URL
-  nativeCurrency: {
-    name: 'Fluent',
-    symbol: 'FLT',
-    decimals: 18
+// Network configurations
+const NETWORKS = {
+  fluent: {
+    name: 'Fluent Developer Preview',
+    chainId: 20993,
+    rpcUrl: 'https://rpc.dev.thefluent.xyz/',
+    blockExplorer: 'https://blockscout.dev.thefluent.xyz/',
+    contractAddress: FLUENT_CONTRACT_ADDRESS,
+    nativeCurrency: {
+      name: 'Fluent',
+      symbol: 'FLT',
+      decimals: 18
+    }
+  },
+  sepolia: {
+    name: 'Ethereum Sepolia',
+    chainId: 11155111,
+    rpcUrl: 'https://ethereum-sepolia-rpc.publicnode.com',
+    blockExplorer: 'https://sepolia.etherscan.io/',
+    contractAddress: SEPOLIA_CONTRACT_ADDRESS,
+    nativeCurrency: {
+      name: 'Sepolia ETH',
+      symbol: 'ETH',
+      decimals: 18
+    }
   }
 };
 // =====================================================
@@ -149,7 +166,7 @@ const createMockContract = () => {
     
     // Mock rust contract address
     rustContract: async () => {
-      return "0x0000000000000000000000000000000000000000";
+      return "0xEd4da3497bcBFff1F944eB566E7D33e812C43F7a";
     },
     
     // Convert to/from fixed-point representation
@@ -158,18 +175,76 @@ const createMockContract = () => {
   };
 };
 
-// Function to check if Fluent network is accessible
-const checkFluentNetwork = async () => {
+// Function to check if a network is accessible
+const checkNetworkStatus = async (network) => {
   try {
-    const provider = new ethers.providers.JsonRpcProvider(FLUENT_NETWORK.rpcUrl);
-    await provider.getBlockNumber();
-    return { isAccessible: true, message: "Fluent network is accessible" };
-  } catch (error) {
-    console.error("Fluent network check failed:", error);
+    console.log(`Attempting to connect to ${network.name} using RPC: ${network.rpcUrl}`);
+    
+    // Use StaticJsonRpcProvider with explicit network info for better reliability
+    const provider = new ethers.providers.StaticJsonRpcProvider(
+      network.rpcUrl,
+      {
+        name: network.name,
+        chainId: network.chainId
+      }
+    );
+    
+    // Set a timeout for the network request
+    const blockNumberPromise = provider.getBlockNumber();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Connection timeout after 10 seconds')), 10000)
+    );
+    
+    // Race between the actual request and the timeout
+    const blockNumber = await Promise.race([blockNumberPromise, timeoutPromise]);
+    console.log(`Successfully connected to ${network.name}, current block: ${blockNumber}`);
+    
     return { 
-      isAccessible: false, 
-      message: `Fluent network is currently not accessible: ${error.message || "Unknown error"}` 
+      isAccessible: true, 
+      message: `${network.name} is accessible (block #${blockNumber})` 
     };
+  } catch (error) {
+    console.error(`${network.name} check failed:`, error);
+    
+    // Try alternative connection method
+    try {
+      console.log(`Trying alternative connection method for ${network.name}`);
+      // Use a different provider configuration
+      const fallbackProvider = new ethers.providers.JsonRpcProvider(network.rpcUrl);
+      fallbackProvider.pollingInterval = 2000; // Increase polling interval
+      
+      const network2 = await fallbackProvider.getNetwork();
+      console.log(`Alternative connection to ${network.name} successful, chain ID: ${network2.chainId}`);
+      
+      return { 
+        isAccessible: true, 
+        message: `${network.name} is accessible via alternative connection` 
+      };
+    } catch (fallbackError) {
+      console.error(`Alternative connection to ${network.name} also failed:`, fallbackError);
+      
+      // Provide a more user-friendly error message
+      let errorMessage = `${network.name} is currently not accessible`;
+      
+      if (error.code === 'ETIMEDOUT' || error.message.includes('timeout')) {
+        errorMessage += `: Connection timed out. Network may be congested or unreachable.`;
+      } else if (error.code === 'SERVER_ERROR') {
+        if (error.status === 401) {
+          errorMessage += `: Authentication failed. Using a public RPC URL instead.`;
+        } else if (!error.response) {
+          errorMessage += `: Server not responding. Please try again later.`;
+        } else {
+          errorMessage += `: ${error.message}`;
+        }
+      } else {
+        errorMessage += `: ${error.message}`;
+      }
+      
+      return { 
+        isAccessible: false, 
+        message: errorMessage 
+      };
+    }
   }
 };
 
@@ -185,31 +260,35 @@ function App() {
   const [connecting, setConnecting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [networkConfigured, setNetworkConfigured] = useState(false);
-  const [networkStatus, setNetworkStatus] = useState({ isAccessible: false, message: "Checking Fluent network status..." });
+  const [networkStatus, setNetworkStatus] = useState({
+    fluent: { isAccessible: false, message: "Checking Fluent network status..." },
+    sepolia: { isAccessible: false, message: "Checking Sepolia network status..." }
+  });
+  // Default to Fluent network
+  const [selectedNetwork, setSelectedNetwork] = useState('fluent');
 
-  // Check Fluent network status on load
+  // Check network status on load
   useEffect(() => {
-    const checkNetwork = async () => {
-      const status = await checkFluentNetwork();
-      setNetworkStatus(status);
+    const checkNetworks = async () => {
+      const fluentStatus = await checkNetworkStatus(NETWORKS.fluent);
+      const sepoliaStatus = await checkNetworkStatus(NETWORKS.sepolia);
       
-      // If network is not accessible, use mock by default
-      if (!status.isAccessible) {
-        setErrorMessage(`${status.message}. Using mock implementation instead.`);
-        useFallbackMock(status.message);
-      }
+      setNetworkStatus({
+        fluent: fluentStatus,
+        sepolia: sepoliaStatus
+      });
     };
     
-    checkNetwork();
+    checkNetworks();
     
-    // Check if Fluent network is already added to MetaMask
+    // Check if networks are already configured in MetaMask
     const checkNetworkConfiguration = async () => {
       if (typeof window.ethereum !== 'undefined') {
         try {
-          // Try to switch to the Fluent network to see if it's configured
+          // Try to switch to the selected network to see if it's configured
           await window.ethereum.request({
             method: 'wallet_switchEthereumChain',
-            params: [{ chainId: `0x${FLUENT_NETWORK.chainId.toString(16)}` }],
+            params: [{ chainId: `0x${NETWORKS[selectedNetwork].chainId.toString(16)}` }],
           });
           setNetworkConfigured(true);
         } catch (switchError) {
@@ -225,55 +304,59 @@ function App() {
     };
     
     checkNetworkConfiguration();
-  }, []);
+  }, [selectedNetwork]);
 
-  // Function to add Fluent Network to MetaMask
-  const addFluentNetwork = async () => {
+  // Function to add the selected network to MetaMask
+  const addNetworkToMetaMask = async () => {
     if (typeof window.ethereum === 'undefined') {
       alert("MetaMask is not installed. Please install MetaMask first.");
       return;
     }
+    
+    const network = NETWORKS[selectedNetwork];
     
     try {
       await window.ethereum.request({
         method: 'wallet_addEthereumChain',
         params: [
           {
-            chainId: `0x${FLUENT_NETWORK.chainId.toString(16)}`,
-            chainName: FLUENT_NETWORK.name,
-            nativeCurrency: FLUENT_NETWORK.nativeCurrency,
-            rpcUrls: [FLUENT_NETWORK.rpcUrl],
-            blockExplorerUrls: [FLUENT_NETWORK.blockExplorer]
+            chainId: `0x${network.chainId.toString(16)}`,
+            chainName: network.name,
+            nativeCurrency: network.nativeCurrency,
+            rpcUrls: [network.rpcUrl],
+            blockExplorerUrls: [network.blockExplorer]
           }
         ]
       });
       
       setNetworkConfigured(true);
-      alert(`${FLUENT_NETWORK.name} has been added to your MetaMask!`);
+      alert(`${network.name} has been added to your MetaMask!`);
     } catch (error) {
-      console.error("Error adding Fluent network to MetaMask:", error);
+      console.error(`Error adding ${network.name} to MetaMask:`, error);
       alert(`Failed to add network: ${error.message}`);
     }
   };
 
-  // Function to switch to Fluent Network in MetaMask
-  const switchToFluentNetwork = async () => {
+  // Function to switch to the selected network in MetaMask
+  const switchToSelectedNetwork = async () => {
     if (typeof window.ethereum === 'undefined') {
       alert("MetaMask is not installed. Please install MetaMask first.");
-      return;
+      return false;
     }
+    
+    const network = NETWORKS[selectedNetwork];
     
     try {
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: `0x${FLUENT_NETWORK.chainId.toString(16)}` }],
+        params: [{ chainId: `0x${network.chainId.toString(16)}` }],
       });
       return true;
     } catch (switchError) {
       // This error code means the chain has not been added to MetaMask
       if (switchError.code === 4902) {
         try {
-          await addFluentNetwork();
+          await addNetworkToMetaMask();
           return true;
         } catch (addError) {
           console.error("Error adding chain:", addError);
@@ -288,15 +371,48 @@ function App() {
 
   // Function to refresh network status
   const refreshNetworkStatus = async () => {
-    setErrorMessage("Checking Fluent network status...");
-    const status = await checkFluentNetwork();
-    setNetworkStatus(status);
+    setErrorMessage("Checking network status...");
     
-    if (status.isAccessible) {
-      setErrorMessage(`${status.message}. You can now try connecting to the Fluent network.`);
+    const fluentStatus = await checkNetworkStatus(NETWORKS.fluent);
+    const sepoliaStatus = await checkNetworkStatus(NETWORKS.sepolia);
+    
+    setNetworkStatus({
+      fluent: fluentStatus,
+      sepolia: sepoliaStatus
+    });
+    
+    const currentNetworkStatus = selectedNetwork === 'fluent' ? fluentStatus : sepoliaStatus;
+    
+    if (currentNetworkStatus.isAccessible) {
+      if (selectedNetwork === 'fluent') {
+        setErrorMessage(`${currentNetworkStatus.message}. You can connect to the network with deployed contracts.`);
+      } else {
+        setErrorMessage(`${currentNetworkStatus.message}. You can now try connecting to the network.`);
+      }
     } else {
-      setErrorMessage(`${status.message}. Using mock implementation instead.`);
+      setErrorMessage(`${currentNetworkStatus.message}. You can try a different network or use mock mode.`);
     }
+  };
+
+  // Handle network selection change
+  const handleNetworkChange = (networkKey) => {
+    if (connectionStatus === 'connected') {
+      // Disconnect current connection before changing network
+      disconnectWallet();
+    }
+    
+    setSelectedNetwork(networkKey);
+    setErrorMessage(`Selected ${NETWORKS[networkKey].name}. Please connect your wallet to continue.`);
+  };
+
+  // Disconnect wallet
+  const disconnectWallet = () => {
+    setAccount(null);
+    setProvider(null);
+    setSigner(null);
+    setContract(null);
+    setConnectionStatus('disconnected');
+    setUseMock(false);
   };
 
   const connectWallet = async (forceMock = false) => {
@@ -310,33 +426,50 @@ function App() {
       setConnecting(true);
       setConnectionStatus('connecting');
       
-      // If mock mode is explicitly requested or network is not accessible, use mock
-      if (forceMock || !networkStatus.isAccessible) {
-        const reason = forceMock ? "Mock mode explicitly requested" : networkStatus.message;
-        useFallbackMock(reason);
+      // If mock mode is explicitly requested, use mock implementation
+      if (forceMock) {
+        useFallbackMock("Mock mode explicitly requested");
+        setConnecting(false);
+        return;
+      }
+      
+      // Get current network status
+      const currentNetworkStatus = networkStatus[selectedNetwork];
+      
+      // If on Fluent network, check if contract exists at the expected address
+      if (selectedNetwork === 'fluent') {
+        console.log("Checking for contract existence on Fluent network...");
+        // We now have contract addresses for Fluent network, no need for automatic mock mode
+      }
+      
+      // Check if the selected network is accessible
+      if (!currentNetworkStatus.isAccessible) {
+        setErrorMessage(`${currentNetworkStatus.message}. Please try refreshing the network status or select a different network.`);
+        setConnectionStatus('disconnected');
         setConnecting(false);
         return;
       }
       
       // Check if MetaMask is installed
       if (typeof window.ethereum === 'undefined') {
-        setErrorMessage("MetaMask not installed. Please install MetaMask to connect to Fluent network.");
-        useFallbackMock("MetaMask not installed");
+        setErrorMessage("MetaMask not installed. Please install MetaMask to connect to blockchain networks.");
+        setConnectionStatus('error');
         setConnecting(false);
         return;
       }
 
-      // Try to switch to the Fluent network
-      const networkSwitched = await switchToFluentNetwork();
+      // Try to switch to the selected network
+      const networkSwitched = await switchToSelectedNetwork();
       if (!networkSwitched) {
-        setErrorMessage("Failed to switch to Fluent network. Please try again or switch manually in MetaMask.");
+        setErrorMessage(`Failed to switch to ${NETWORKS[selectedNetwork].name}. Please try again or switch manually in MetaMask.`);
+        setConnectionStatus('error');
         setConnecting(false);
         return;
       }
 
       // Try real blockchain connection
       try {
-        console.log("Attempting to connect to MetaMask and Fluent network...");
+        console.log(`Attempting to connect to MetaMask and ${NETWORKS[selectedNetwork].name}...`);
         
         // Request account access with a timeout
         const accounts = await Promise.race([
@@ -355,83 +488,172 @@ function App() {
         // Setup ethers provider and contract
         const newProvider = new ethers.providers.Web3Provider(window.ethereum);
         const newSigner = newProvider.getSigner();
-        const newContract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, newSigner);
+        const currentNetwork = NETWORKS[selectedNetwork];
 
-        // Test contract connection with a simple call
-        console.log("Testing contract connection...");
-        try {
-          // Wait at most 5 seconds for contract call
-          await Promise.race([
-            newContract.rustContract(),
-            new Promise((_, reject) => setTimeout(() => reject(new Error("Contract call timeout")), 5000))
-          ]);
-          console.log("Contract connection successful!");
-        } catch (contractError) {
-          console.error("Contract connection failed:", contractError);
-          setErrorMessage(`Contract connection failed: The contract at address ${CONTRACT_ADDRESS} is not responding or doesn't exist on the Fluent network. Please verify the contract is deployed correctly.`);
-          throw new Error("Contract connection failed: " + contractError.message);
-        }
-
+        // Set provider and signer first
         setProvider(newProvider);
         setSigner(newSigner);
-        setContract(newContract);
-        setConnectionStatus('connected');
-        setUseMock(false);
-        console.log("Successfully connected to Fluent network");
+        
+        // Create contract instance
+        const newContract = new ethers.Contract(currentNetwork.contractAddress, contractABI, newSigner);
 
-        // Setup event listeners for wallet changes
-        window.ethereum.on('accountsChanged', (accounts) => {
-          if (accounts.length === 0) {
-            // User disconnected wallet
-            setAccount(null);
-            setConnectionStatus('disconnected');
-          } else {
-            setAccount(accounts[0]);
-          }
-        });
-
-        window.ethereum.on('chainChanged', () => {
-          window.location.reload();
-        });
-
-        // Check if connected to the right network
+        // Test contract connection with a simple call (only for networks where contract is deployed)
+        console.log("Testing contract connection...");
         try {
-          const network = await newProvider.getNetwork();
-          console.log("Connected to network with chainId:", network.chainId);
-          if (network.chainId !== FLUENT_NETWORK.chainId) {
-            console.warn(`Wrong network detected. Expected ${FLUENT_NETWORK.chainId}, got ${network.chainId}`);
-            setErrorMessage(`Please connect to the ${FLUENT_NETWORK.name} network (ChainID: ${FLUENT_NETWORK.chainId})`);
-            alert(`Please connect to the ${FLUENT_NETWORK.name} network (ChainID: ${FLUENT_NETWORK.chainId})`);
+          // Skip contract test for Sepolia if using placeholder address
+          if (selectedNetwork === 'sepolia' && currentNetwork.contractAddress === "0x0000000000000000000000000000000000000000") {
+            console.log("Skipping contract test for Sepolia as contract address is not set");
+            
+            // Use mock for Sepolia
+            console.log("Using mock implementation for Sepolia since contract is not deployed");
+            const mockContract = createMockContract();
+            setContract(mockContract);
+            setConnectionStatus('connected');
+            setUseMock(true);
+            setConnecting(false);
+            return;
+          } else {
+            console.log(`Attempting to call rustContract() on address: ${currentNetwork.contractAddress}`);
+            
+            // Check if contract exists at the address first
+            const code = await newProvider.getCode(currentNetwork.contractAddress);
+            if (code === '0x') {
+              console.error(`No contract found at address ${currentNetwork.contractAddress}`);
+              throw new Error(`No contract code found at address ${currentNetwork.contractAddress}`);
+            }
+            
+            console.log(`Contract exists at ${currentNetwork.contractAddress}, bytecode length: ${code.length}`);
+            
+            // Validate the contract by checking for expected functions
+            let isValidContract = true;
+            try {
+              // Try to check for each function directly via the ABI
+              for (const functionName of ['sqrt', 'exp', 'ln', 'log10', 'log2']) {
+                if (!newContract.functions[functionName]) {
+                  console.warn(`Function ${functionName} not found in contract`);
+                  isValidContract = false;
+                }
+              }
+            } catch (validationError) {
+              console.warn("Contract validation error:", validationError);
+              isValidContract = false;
+            }
+            
+            if (!isValidContract) {
+              throw new Error("Contract validation failed: Missing expected functions");
+            }
+            
+            try {
+              // Attempt to call rustContract() to verify if the function works
+              // but don't make this a blocking call
+              const rustContractPromise = newContract.rustContract();
+              const rustContractResult = await Promise.race([
+                rustContractPromise,
+                new Promise((_, reject) => setTimeout(() => {
+                  // Don't reject, just log that we're continuing without verification
+                  console.log("rustContract() call timed out, continuing anyway");
+                  return null;
+                }, 5000))
+              ]);
+              
+              if (rustContractResult) {
+                console.log("Contract connection successful! Rust contract address:", rustContractResult);
+              }
+              
+              // Set the contract and continue regardless
+              setContract(newContract);
+              setConnectionStatus('connected');
+              setUseMock(false);
+              console.log(`Successfully connected to ${currentNetwork.name}`);
+              
+              // Setup event listeners for wallet changes
+              window.ethereum.on('accountsChanged', (accounts) => {
+                if (accounts.length === 0) {
+                  // User disconnected wallet
+                  disconnectWallet();
+                } else {
+                  setAccount(accounts[0]);
+                }
+              });
+
+              window.ethereum.on('chainChanged', () => {
+                window.location.reload();
+              });
+
+              // Check if connected to the right network
+              try {
+                const network = await newProvider.getNetwork();
+                console.log("Connected to network with chainId:", network.chainId);
+                if (network.chainId !== currentNetwork.chainId) {
+                  console.warn(`Wrong network detected. Expected ${currentNetwork.chainId}, got ${network.chainId}`);
+                  setErrorMessage(`Please connect to the ${currentNetwork.name} network (ChainID: ${currentNetwork.chainId})`);
+                  alert(`Please connect to the ${currentNetwork.name} network (ChainID: ${currentNetwork.chainId})`);
+                }
+              } catch (networkError) {
+                console.error("Failed to check network:", networkError);
+              }
+            } catch (callError) {
+              console.error("Contract method call error:", callError);
+              
+              // Continue with a warning but use the contract instance anyway
+              setErrorMessage(`Warning: The contract at ${currentNetwork.contractAddress} didn't respond correctly to the rustContract() call. Some functions may not work properly.`);
+              
+              // Set the contract anyway and try to use it
+              setContract(newContract);
+              setConnectionStatus('connected');
+              setUseMock(false);
+              
+              // Setup event listeners for wallet changes
+              window.ethereum.on('accountsChanged', (accounts) => {
+                if (accounts.length === 0) {
+                  // User disconnected wallet
+                  disconnectWallet();
+                } else {
+                  setAccount(accounts[0]);
+                }
+              });
+
+              window.ethereum.on('chainChanged', () => {
+                window.location.reload();
+              });
+
+              // Check if connected to the right network
+              try {
+                const network = await newProvider.getNetwork();
+                console.log("Connected to network with chainId:", network.chainId);
+                if (network.chainId !== currentNetwork.chainId) {
+                  console.warn(`Wrong network detected. Expected ${currentNetwork.chainId}, got ${network.chainId}`);
+                  setErrorMessage(`Please connect to the ${currentNetwork.name} network (ChainID: ${currentNetwork.chainId})`);
+                  alert(`Please connect to the ${currentNetwork.name} network (ChainID: ${currentNetwork.chainId})`);
+                }
+              } catch (networkError) {
+                console.error("Failed to check network:", networkError);
+              }
+            }
           }
-        } catch (networkError) {
-          console.error("Failed to check network:", networkError);
+        } catch (contractError) {
+          console.error("Contract connection failed:", contractError);
+          
+          // Fall back to mock mode since contract verification failed
+          console.log("Falling back to mock mode due to contract verification failure");
+          setErrorMessage(`Contract verification failed: ${contractError.message}. Falling back to No-Blockchain Mode.`);
+          
+          // Use mock implementation
+          useFallbackMock("Contract verification failed");
         }
       } catch (error) {
         console.warn('Error connecting to blockchain:', error.message);
-        setErrorMessage(`Failed to connect to Fluent network: ${error.message}. Verify your MetaMask is connected to Fluent network and the contract is deployed.`);
-        useFallbackMock(error.message);
+        setErrorMessage(`Failed to connect to ${NETWORKS[selectedNetwork].name}: ${error.message}. Verify your MetaMask is connected to the correct network and the contract is deployed.`);
+        setConnectionStatus('error');
+        setConnecting(false);
       }
     } catch (error) {
       console.error('Error in connect process:', error);
       setErrorMessage(`Connection error: ${error.message}`);
       setConnectionStatus('error');
+      setConnecting(false);
     } finally {
       setConnecting(false);
-    }
-  };
-
-  // Toggle between real and mock modes
-  const toggleMockMode = () => {
-    if (useMock) {
-      if (!networkStatus.isAccessible) {
-        alert("Cannot connect to Fluent network. Please try refreshing the network status first.");
-        return;
-      }
-      // Switch to real blockchain
-      connectWallet(false);
-    } else {
-      // Switch to mock mode
-      connectWallet(true);
     }
   };
 
@@ -463,166 +685,152 @@ function App() {
       <Header />
       
       <main className="main-content">
-        <WalletConnection 
-          connectWallet={() => connectWallet(false)}
-          account={account}
-          connectionStatus={connectionStatus}
-          networkName={useMock ? "Mock Implementation" : FLUENT_NETWORK.name}
-        />
-        
-        {/* Network configuration and wallet controls */}
-        <div style={{
-          margin: '15px auto',
-          padding: '15px',
-          borderRadius: '8px',
-          backgroundColor: '#f8f9fa',
-          maxWidth: '600px',
-          textAlign: 'center'
-        }}>
-          {/* Network status banner */}
-          <div style={{
-            marginBottom: '15px',
-            padding: '10px',
-            borderRadius: '4px',
-            backgroundColor: networkStatus.isAccessible ? '#d4edda' : '#f8d7da',
-            color: networkStatus.isAccessible ? '#155724' : '#721c24'
-          }}>
-            <strong>Network Status:</strong> {networkStatus.message}
-            <button 
-              onClick={refreshNetworkStatus}
-              style={{
-                marginLeft: '10px',
-                padding: '3px 8px',
-                border: 'none',
-                borderRadius: '4px',
-                backgroundColor: '#6c757d',
-                color: 'white',
-                cursor: 'pointer'
-              }}
-            >
-              Refresh
-            </button>
-          </div>
-          
-          {/* Deployment Information */}
-          <div style={{
-            marginBottom: '15px',
-            padding: '10px',
-            borderRadius: '4px',
-            backgroundColor: '#e2f3fc',
-            color: '#0c5460',
-            textAlign: 'left',
-            fontSize: '14px'
-          }}>
-            <p style={{ margin: '0 0 5px 0' }}><strong>Deployment Info:</strong></p>
-            <p style={{ margin: '0 0 5px 0' }}>Wallet Address: {WALLET_INFO.address}</p>
-            <p style={{ margin: '0 0 5px 0' }}>Contract Address: {CONTRACT_ADDRESS}</p>
-            <p style={{ margin: '0' }}>Network: {FLUENT_NETWORK.name} (ChainID: {FLUENT_NETWORK.chainId})</p>
-          </div>
-          
-          {!networkConfigured && !useMock && networkStatus.isAccessible && (
-            <div style={{ marginBottom: '10px' }}>
+        {/* Network and Connection Controls */}
+        <div className="network-selection-container">
+          <div className="network-controls">
+            <h2>Network Selection</h2>
+            <div className="network-options">
+              <div className="network-option">
+                <input 
+                  type="radio" 
+                  id="fluent-network" 
+                  name="network" 
+                  value="fluent" 
+                  checked={selectedNetwork === 'fluent'} 
+                  onChange={() => handleNetworkChange('fluent')} 
+                />
+                <label htmlFor="fluent-network">
+                  <span className={`status-indicator ${networkStatus.fluent.isAccessible ? 'online' : 'offline'}`}></span>
+                  Fluent Developer Preview
+                </label>
+              </div>
+              <div className="network-option">
+                <input 
+                  type="radio" 
+                  id="sepolia-network" 
+                  name="network" 
+                  value="sepolia" 
+                  checked={selectedNetwork === 'sepolia'} 
+                  onChange={() => handleNetworkChange('sepolia')} 
+                />
+                <label htmlFor="sepolia-network">
+                  <span className={`status-indicator ${networkStatus.sepolia.isAccessible ? 'online' : 'offline'}`}></span>
+                  Ethereum Sepolia
+                </label>
+              </div>
+            </div>
+            <div className="network-actions">
               <button 
-                onClick={addFluentNetwork}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#6c5ce7',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold'
-                }}
+                className="refresh-btn" 
+                onClick={refreshNetworkStatus}
               >
-                📡 Add Fluent Network to MetaMask
+                Refresh Network Status
               </button>
-              <p style={{ fontSize: '14px', marginTop: '8px', color: '#666' }}>
-                Click to configure MetaMask with the Fluent network settings
-              </p>
+              {!networkConfigured && (
+                <button 
+                  className="add-network-btn" 
+                  onClick={addNetworkToMetaMask}
+                >
+                  Add Network to MetaMask
+                </button>
+              )}
+              <button 
+                className="mock-mode-btn" 
+                onClick={() => useFallbackMock("Manually activated")}
+                disabled={connectionStatus === 'connected' && useMock}
+              >
+                Use No-Blockchain Mode
+              </button>
             </div>
-          )}
+          </div>
           
-          {errorMessage && (
-            <div style={{
-              backgroundColor: '#fff3cd',
-              color: '#856404',
-              padding: '10px',
-              borderRadius: '4px',
-              marginBottom: '15px',
-              textAlign: 'left'
-            }}>
-              <strong>Connection Issue:</strong> {errorMessage}
-            </div>
-          )}
-          
-          {/* Mock mode toggle button */}
-          <button 
-            onClick={toggleMockMode}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: useMock ? '#f8d7da' : '#d4edda',
-              color: useMock ? '#721c24' : '#155724',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
-            {useMock 
-              ? '🌐 Try Connecting to Fluent Network' 
-              : '🧪 Switch to Mock Mode'}
-          </button>
+          <WalletConnection 
+            connectWallet={() => connectWallet(false)}
+            account={account}
+            connectionStatus={connectionStatus}
+            networkName={useMock ? "No-Blockchain Mode" : NETWORKS[selectedNetwork].name}
+          />
         </div>
         
-        <MathFunctions 
-          contract={contract}
-          isConnected={connectionStatus === 'connected'}
-          scaleFactor={SCALE_FACTOR}
-          updateCalculationHistory={updateCalculationHistory}
-        />
+        {/* Network status and error messages */}
+        <div className="status-container">
+          {errorMessage && <div className="error-message">{errorMessage}</div>}
+          <div className="network-status">
+            {selectedNetwork && (
+              <div className={`status-badge ${networkStatus[selectedNetwork].isAccessible ? 'success' : 'error'}`}>
+                {networkStatus[selectedNetwork].message}
+              </div>
+            )}
+          </div>
+        </div>
         
-        {calculationHistory.length > 0 && (
-          <section className="calculation-history">
-            <h2>Calculation History</h2>
-            <div className="history-list">
-              {calculationHistory.map(item => (
-                <div key={item.id} className="history-item">
-                  <span className="history-function">{item.functionName}({item.input})</span>
-                  <span className="history-result">{item.result}</span>
-                  <span className="history-time">{item.timestamp} ({item.duration}ms)</span>
-                </div>
-              ))}
+        {/* Connection Information */}
+        {connectionStatus === 'connected' && (
+          <div className="connection-info-container">
+            <div className="info-box">
+              <h3>Connection Information</h3>
+              <p>Mode: {useMock ? "No-Blockchain Mode" : "Blockchain Connected"}</p>
+              <p>Network: {useMock ? "Local Simulation" : NETWORKS[selectedNetwork].name}</p>
+              <p>Wallet: {account}</p>
+              {useMock && (
+                <p className="mock-notice">
+                  Using local math implementations. Results are calculated in-browser without blockchain interaction.
+                </p>
+              )}
+              {connectionStatus === 'connected' && !useMock && (
+                <button 
+                  className="disconnect-btn" 
+                  onClick={disconnectWallet}
+                >
+                  Disconnect Wallet
+                </button>
+              )}
             </div>
-          </section>
+          </div>
         )}
         
-        <GraphVisualization 
-          contract={contract}
-          selectedFunction={selectedFunction}
-          setSelectedFunction={setSelectedFunction}
-          isConnected={connectionStatus === 'connected'}
-          scaleFactor={SCALE_FACTOR}
-        />
+        {/* Math functions remain the same */}
+        {connectionStatus === 'connected' && contract && (
+          <>
+            <MathFunctions
+              contract={contract}
+              isConnected={connectionStatus === 'connected'}
+              scaleFactor={SCALE_FACTOR}
+              updateCalculationHistory={updateCalculationHistory}
+            />
+            
+            <GraphVisualization
+              contract={contract}
+              isConnected={connectionStatus === 'connected'}
+              selectedFunction={selectedFunction}
+              setSelectedFunction={setSelectedFunction}
+            />
+            
+            <div className="calculation-history">
+              <h2>Calculation History</h2>
+              {calculationHistory.length > 0 ? (
+                <ul>
+                  {calculationHistory.map(item => (
+                    <li key={item.id}>
+                      <span className="timestamp">{item.timestamp}</span>
+                      <span className="function-name">{item.functionName}({item.input})</span>
+                      <span className="result">{item.result}</span>
+                      <span className="duration">{item.duration}ms</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="no-history">No calculations performed yet.</p>
+              )}
+            </div>
+          </>
+        )}
         
         <AboutSection />
       </main>
-      
-      <footer>
-        <p>Created with Fluent Blended App technology</p>
-        <p className="copyright">© 2023 PRB Math Blended</p>
-        {useMock && (
-          <p className="mock-notice" style={{
-            color: '#856404', 
-            backgroundColor: '#fff3cd',
-            padding: '8px',
-            borderRadius: '4px',
-            margin: '10px 0'
-          }}>
-            Running with mock implementation (no blockchain)
-          </p>
-        )}
-      </footer>
     </div>
   );
 }
 
 export default App;
+

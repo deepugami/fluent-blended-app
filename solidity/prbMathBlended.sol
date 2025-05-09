@@ -7,6 +7,8 @@ pragma solidity ^0.8.20;
  * This smart contract acts as a facade that forwards calls to the Rust implementation
  * deployed on the Fluent network. It provides a familiar Solidity interface for
  * developers while leveraging the performance benefits of Rust.
+ * 
+ * The Rust implementation uses the libm library for high-precision floating-point calculations.
  */
 contract prbMathBlended {
     // Interface to the Rust functions
@@ -42,9 +44,8 @@ contract prbMathBlended {
 
     /**
      * @dev Calculates the square root using the Rust implementation
-     * @param x The input value
-     * @return The square root of x
-     * @notice Returns as a fixed-point number with 18 decimals of precision
+     * @param x The input value as a fixed-point number with 18 decimals
+     * @return The square root of x as a fixed-point number with 18 decimals
      */
     function sqrt(uint256 x) public view returns (uint256) {
         return RustMath(rustContract).sqrt(x);
@@ -54,8 +55,7 @@ contract prbMathBlended {
      * @dev Calculates e^x using the Rust implementation
      * @param x The input value as a fixed-point number with 18 decimals
      * @return The value of e^x as a fixed-point number with 18 decimals
-     * @notice For very large positive values (x > 40), it may return the maximum value
-     * @notice For very large negative values (x < -40), it may return 0
+     * @notice For values outside the range [-40, 40], results may be clamped
      */
     function exp(int256 x) public view returns (int256) {
         return RustMath(rustContract).exp(x);
@@ -65,7 +65,7 @@ contract prbMathBlended {
      * @dev Calculates the natural logarithm using the Rust implementation
      * @param x The input value as a fixed-point number with 18 decimals
      * @return The natural logarithm of x as a fixed-point number with 18 decimals
-     * @notice Reverts if x <= 0 as the logarithm is undefined for these values
+     * @notice Returns a minimum value for x = 0 as the logarithm is undefined
      */
     function ln(uint256 x) public view returns (int256) {
         if (x == 0) revert MathError("ln(0) is undefined");
@@ -76,7 +76,7 @@ contract prbMathBlended {
      * @dev Calculates the base-10 logarithm using the Rust implementation
      * @param x The input value as a fixed-point number with 18 decimals
      * @return The base-10 logarithm of x as a fixed-point number with 18 decimals
-     * @notice Reverts if x <= 0 as the logarithm is undefined for these values
+     * @notice Returns a minimum value for x = 0 as the logarithm is undefined
      */
     function log10(uint256 x) public view returns (int256) {
         if (x == 0) revert MathError("log10(0) is undefined");
@@ -87,7 +87,7 @@ contract prbMathBlended {
      * @dev Calculates the base-2 logarithm using the Rust implementation
      * @param x The input value as a fixed-point number with 18 decimals
      * @return The base-2 logarithm of x as a fixed-point number with 18 decimals
-     * @notice Reverts if x <= 0 as the logarithm is undefined for these values
+     * @notice Returns a minimum value for x = 0 as the logarithm is undefined
      */
     function log2(uint256 x) public view returns (int256) {
         if (x == 0) revert MathError("log2(0) is undefined");

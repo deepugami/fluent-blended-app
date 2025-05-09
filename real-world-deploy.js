@@ -12,13 +12,13 @@ const walletAddress = '0xE3be5250dC953F4581e4be70EaB0C23544006261';
 const FLUENT_NETWORK = {
   name: 'Fluent Developer Preview',
   chainId: 20993,  // Fluent Developer Preview chain ID
-  rpcUrl: 'https://rpc.dev.thefluent.xyz/',  // Fluent Developer Preview RPC URL
-  blockExplorer: 'https://blockscout.dev.thefluent.xyz/'  // Fluent Developer Preview explorer URL
+  rpcUrl: 'https://rpc.dev.gblend.xyz',  // Fluent Developer Preview RPC URL
+  blockExplorer: 'https://explorer.dev.gblend.xyz'  // Fluent Developer Preview explorer URL
 };
 
 // Predefined contract addresses from simulated deployment
-const rustContractAddress = "0xEd4da3497bcBFff1F944eB566E7D33e812C43F7a";
-const solidityContractAddress = "0x8D4E34c7A6a757574665CaF2E23684b1dff31Fda";
+const rustContractAddress = "0xaf3d76b5294c82c080c93b4c964cdf6a15f29d1e";
+const solidityContractAddress = "0x2ed29d982b0120d49899a7cc7afe7f5d5435bc56";
 
 async function main() {
     console.log('====================================================================================');

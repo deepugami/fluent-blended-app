@@ -5,12 +5,12 @@ const path = require('path');
 try {
     console.log('Starting simple update script');
     
-    // Contract addresses
-    const rustContractAddress = "0xEd4da3497bcBFff1F944eB566E7D33e812C43F7a";
-    const solidityContractAddress = "0x8D4E34c7A6a757574665CaF2E23684b1dff31Fda";
+    // Deployed contract addresses
+    const rustContractAddress = "0xaF3d76B5294C82c080c93b4c964cdF6A15F29D1e";
+    const solidityContractAddress = "0x2eD29d982B0120d49899a7cC7AfE7f5d5435bc56";
     
     // Get path to App.jsx
-    const appJsxPath = path.join(__dirname, '..', '..', 'prb-math-react-frontend', 'src', 'App.jsx');
+    const appJsxPath = path.join(__dirname, 'prb-math-react-frontend', 'src', 'App.jsx');
     console.log(`Looking for file at: ${appJsxPath}`);
     console.log(`File exists: ${fs.existsSync(appJsxPath)}`);
     
@@ -21,8 +21,8 @@ try {
         
         // Update the contract address
         const updatedContent = content.replace(
-            /const CONTRACT_ADDRESS = "[^"]+";/,
-            `const CONTRACT_ADDRESS = "${solidityContractAddress}"; // Updated on ${new Date().toISOString()}`
+            /const FLUENT_CONTRACT_ADDRESS = "[^"]+";/,
+            `const FLUENT_CONTRACT_ADDRESS = "${solidityContractAddress}"; // Updated on ${new Date().toISOString()}`
         );
         
         // Write the file

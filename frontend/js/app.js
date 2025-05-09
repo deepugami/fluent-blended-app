@@ -70,15 +70,15 @@ const contractABI = [
 
 // Contract deployment information
 // TODO: Update this with your actual deployed contract address after deployment
-const CONTRACT_ADDRESS = "0xE3be5250dC953F4581e4be70EaB0C23544006261";
+const CONTRACT_ADDRESS = "0x8D4E34c7A6a757574665CaF2E23684b1dff31Fda"; // Updated contract address
 
 // Fluent Network configuration
 // TODO: Update these values with the actual Fluent network configuration
 const FLUENT_NETWORK = {
-    name: 'Fluent Testnet',
-    chainId: 424242,  // Update with actual Fluent chain ID
-    rpcUrl: 'https://testnet.fluent.xyz',  // Update with actual RPC URL
-    blockExplorer: 'https://explorer.testnet.fluent.xyz'  // Update with actual explorer URL
+  name: 'Fluent Developer Preview',
+  chainId: 20993,  // Fluent Developer Preview chain ID
+  rpcUrl: 'https://rpc.dev.thefluent.xyz/',  // Updated RPC URL
+  blockExplorer: 'https://blockscout.dev.thefluent.xyz/'  // Updated block explorer URL
 };
 
 // Global variables

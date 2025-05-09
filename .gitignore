@@ -9,6 +9,19 @@ build/
 */dist/
 */build/
 
+# Rust build artifacts
+rust/target/
+*/rust/target/
+**/rust/target/
+**/target/
+**/gblend/
+*.wasm
+
+# Build artifacts
+temp/
+temp-blended/
+temp-deploy/
+
 # Environment variables
 .env
 .env.local

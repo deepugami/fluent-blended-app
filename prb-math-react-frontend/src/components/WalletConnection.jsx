@@ -3,7 +3,7 @@ import React from 'react';
 const WalletConnection = ({ connectWallet, account, connectionStatus, networkName }) => {
   return (
     <section className="wallet-connection">
-      <h2>Network Connection</h2>
+      <h2>Wallet Connection</h2>
       <div className="connection-info">
         <div>
           <button 

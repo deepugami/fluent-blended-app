@@ -1,0 +1,1 @@
+const { ethers } = require('ethers'); const provider = new ethers.providers.StaticJsonRpcProvider('https://rpc.dev.thefluent.xyz/', { chainId: 20993 }); provider.getBlockNumber().then(block => console.log('Success! Block:', block)).catch(error => console.error('Error:', error.message));

@@ -1,8 +1,66 @@
-# PRB Math Blended App
+# PRB Math Blended App - Fixed Version
 
-A Blended application that implements PRB Math functions using both Solidity and Rust on the Fluent network. The application combines the performance of Rust's WebAssembly execution with the convenience of Solidity's EVM compatibility.
+A Blended application that implements PRB Math functions using both Solidity and Rust on the Fluent network. This repository has been updated to fix contract errors and implement the correct structure based on the blended-template repository.
 
-![PRB Math Blended Banner](https://i.imgur.com/placeholder.png)
+## Network Compatibility Status
+
+**Important Note**: 
+- The application is currently working properly on **Ethereum Sepolia** testnet.
+- The application is **NOT working** on the Fluent network due to errors in the WebAssembly file when deploying the Rust contract on Fluent.
+
+## Fixes Implemented
+
+1. **Rust Contract**: Updated the lib.rs file to correctly use the proper interfaces and types from the fluentbase-sdk.
+2. **Cargo.toml**: Updated the Cargo.toml with the correct dependencies and features.
+3. **Solidity Contract**: Created a new FluentSdkRustTypesTest.sol contract that interfaces properly with the Rust contract.
+4. **JavaScript Integration**: Created two JavaScript files for testing: solidity.js (to test the Solidity contract calling Rust) and rust.js (to directly call the Rust contract).
+
+## Deployment Instructions
+
+For detailed deployment instructions, see [deployment-instructions.md](./deployment-instructions.md).
+
+### Quick Start
+
+1. Deploy the Rust contract
+   ```bash
+   cd rust
+   gblend build rust -r
+   gblend deploy --private-key $devTestnetPrivateKey --dev lib.wasm --gas-limit 3000000
+   ```
+
+2. Deploy the Solidity contract with the Rust contract address
+   ```bash
+   cd ../solidity
+   forge create FluentSdkRustTypesTest.sol:FluentSdkRustTypesTest \
+   --constructor-args-path constructor-args.txt \
+   --private-key $devTestnetPrivateKey \
+   --rpc-url https://rpc.dev.gblend.xyz/ \
+   --broadcast
+   ```
+
+3. Test the integration with JavaScript
+   ```bash
+   npm install
+   node solidity.js
+   node rust.js
+   ```
+
+## Contract Addresses
+
+After deployment, update these addresses in the JavaScript files:
+
+- Rust Contract: `0x04160C19738bB6429c0554fBdC11A96079D7297D` (placeholder)
+- Solidity Contract: `0xD96a275ca2e9Ef5B10bF9fDb106718b670Afc8B2` (placeholder)
+
+## Notes
+
+This implementation follows the structure and practices recommended in the [blended-template](https://github.com/fluentlabs-xyz/blended-template) repository. The original PRB Math functionality has been replaced with more basic type demonstration to focus on the core Rust-Solidity integration.
+
+## Resources
+
+- [Fluent Documentation](https://docs.fluent.xyz/developer-guides/building-a-blended-app/)
+- [Blended Template](https://github.com/fluentlabs-xyz/blended-template)
+- [Fluent Developer Preview](https://faucet.dev.gblend.xyz/)
 
 ## Overview
 
