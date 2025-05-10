@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRB Math Blended App</title>
+    <!-- Include Inter font for improved typography -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <!-- Include Roboto Mono for code-like sections -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap">
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Include Ethers.js for blockchain interaction -->
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.0.umd.min.js" type="application/javascript"></script>
+    <!-- Include Chart.js for graph visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PRB Math Blended</h1>
+            <p>Mathematical functions powered by Fluent network's blended smart contract system</p>
+        </header>
+
+        <section class="wallet-connection">
+            <h2>Network Connection</h2>
+            <div class="connection-info">
+                <div>
+                    <button id="connectWallet">Connect Wallet</button>
+                    <div class="network-badge">
+                        Network: <span id="networkName">Fluent Developer Preview</span>
+                        <span id="connectionStatus" class="status disconnected">Not Connected</span>
+                    </div>
+                    <p class="connection-note"><strong>Note:</strong> Wallet connection is optional. All math functions are available in read-only mode.</p>
+                </div>
+                <div id="walletInfo" class="hidden">
+                    <p>Connected Address: <span id="walletAddress"></span></p>
+                </div>
+            </div>
+        </section>
+
+        <section class="math-functions">
+            <h2>Math Functions</h2>
+            <div class="functions-description">
+                <p>These mathematical functions are executed through the Fluent network's blended smart contract system. Enjoy high-performance computation with blockchain security. <strong>No wallet connection required</strong> to use these functions!</p>
+            </div>
+            
+            <div class="function-card">
+                <h3>Square Root (√x)</h3>
+                <div class="function-input">
+                    <label for="sqrtInput">Enter a positive number:</label>
+                    <input type="number" id="sqrtInput" placeholder="e.g., 16" step="any" min="0">
+                    <button class="calculate-btn" data-function="sqrt">Calculate</button>
+                </div>
+                <div id="sqrtResultContainer" class="result-display">
+                    <p>Result: <span id="sqrtResult">-</span></p>
+                    <button class="copy-result" data-function="sqrt">Copy</button>
+                </div>
+            </div>
+
+            <div class="function-card">
+                <h3>Exponential (e^x)</h3>
+                <div class="function-input">
+                    <label for="expInput">Enter a number:</label>
+                    <input type="number" id="expInput" placeholder="e.g., 2" step="any">
+                    <button class="calculate-btn" data-function="exp">Calculate</button>
+                </div>
+                <div id="expResultContainer" class="result-display">
+                    <p>Result: <span id="expResult">-</span></p>
+                    <button class="copy-result" data-function="exp">Copy</button>
+                </div>
+            </div>
+
+            <div class="function-card">
+                <h3>Natural Logarithm (ln(x))</h3>
+                <div class="function-input">
+                    <label for="lnInput">Enter a positive number:</label>
+                    <input type="number" id="lnInput" placeholder="e.g., 2.718" step="any" min="0.000001">
+                    <button class="calculate-btn" data-function="ln">Calculate</button>
+                </div>
+                <div id="lnResultContainer" class="result-display">
+                    <p>Result: <span id="lnResult">-</span></p>
+                    <button class="copy-result" data-function="ln">Copy</button>
+                </div>
+            </div>
+
+            <div class="function-card">
+                <h3>Base-10 Logarithm (log₁₀(x))</h3>
+                <div class="function-input">
+                    <label for="log10Input">Enter a positive number:</label>
+                    <input type="number" id="log10Input" placeholder="e.g., 100" step="any" min="0.000001">
+                    <button class="calculate-btn" data-function="log10">Calculate</button>
+                </div>
+                <div id="log10ResultContainer" class="result-display">
+                    <p>Result: <span id="log10Result">-</span></p>
+                    <button class="copy-result" data-function="log10">Copy</button>
+                </div>
+            </div>
+
+            <div class="function-card">
+                <h3>Base-2 Logarithm (log₂(x))</h3>
+                <div class="function-input">
+                    <label for="log2Input">Enter a positive number:</label>
+                    <input type="number" id="log2Input" placeholder="e.g., 8" step="any" min="0.000001">
+                    <button class="calculate-btn" data-function="log2">Calculate</button>
+                </div>
+                <div id="log2ResultContainer" class="result-display">
+                    <p>Result: <span id="log2Result">-</span></p>
+                    <button class="copy-result" data-function="log2">Copy</button>
+                </div>
+            </div>
+        </section>
+        
+        <section id="historySection" class="calculation-history hidden">
+            <h2>Calculation History</h2>
+            <div id="calculationHistory"></div>
+        </section>
+
+        <section class="graph-visualization">
+            <h2>Function Visualization</h2>
+            <div class="graph-selector">
+                <label for="graphFunction">Select Function:</label>
+                <select id="graphFunction">
+                    <option value="sqrt">Square Root (√x)</option>
+                    <option value="exp">Exponential (e^x)</option>
+                    <option value="ln">Natural Logarithm (ln(x))</option>
+                    <option value="log10">Base-10 Logarithm (log₁₀(x))</option>
+                    <option value="log2">Base-2 Logarithm (log₂(x))</option>
+                </select>
+            </div>
+            <div class="graph-header">
+                <h3>Graph of <span id="currentGraphFunction">Square Root (√x)</span></h3>
+                <div id="graphLoadingIndicator" class="loading-indicator hidden">
+                    <span class="loading-spinner"></span> Loading data from blockchain...
+                </div>
+            </div>
+            <div class="graph-container">
+                <canvas id="graphCanvas"></canvas>
+            </div>
+        </section>
+        
+        <section class="about-section">
+            <h2>About PRB Math Blended</h2>
+            <div class="about-content">
+                <p>
+                    This application demonstrates advanced mathematical computations on the Fluent network.
+                    By leveraging Fluent's blended smart contract system, we deliver precise, reliable 
+                    calculations with the security and transparency of blockchain technology.
+                </p>
+                <p>
+                    The Fluent network enables a new generation of blockchain applications 
+                    with enhanced capabilities, improved performance, and deeper interoperability
+                    between different programming paradigms.
+                </p>
+                <div class="tech-stack">
+                    <h4>Technology Stack:</h4>
+                    <ul>
+                        <li>Fluent Network</li>
+                        <li>Blended Smart Contracts</li>
+                        <li>Ethers.js</li>
+                        <li>Chart.js</li>
+                        <li>PRB Math Library</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>Powered by Fluent Network Technology</p>
+        <p class="copyright">© 2023 PRB Math Blended</p>
+    </footer>
+
+    <!-- Include our custom JavaScript -->
+    <script src="js/app.js"></script>
+</body>
+</html> 

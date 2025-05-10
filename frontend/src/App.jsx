@@ -191,30 +191,61 @@ const checkNetworkStatus = async (network) => {
 
 function App() {
   const [contract, setContract] = useState(null);
-  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const [connectionStatus, setConnectionStatus] = useState('connecting');
   const [selectedFunction, setSelectedFunction] = useState('sqrt');
   const [calculationHistory, setCalculationHistory] = useState([]);
   const [useMock, setUseMock] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const [networkStatus, setNetworkStatus] = useState({
     fluent: { isAccessible: false, message: "Checking Fluent network status..." }
   });
+  const [theme, setTheme] = useState('light');
+
+  // Theme toggle functionality
+  useEffect(() => {
+    // Check if user has a saved theme preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      // Use dark mode if user has dark mode preference in their OS
+      setTheme('dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+  };
 
   // Check network status on load
   useEffect(() => {
     const checkNetworks = async () => {
-      const fluentStatus = await checkNetworkStatus(FLUENT_NETWORK);
-      
-      setNetworkStatus({
-        fluent: fluentStatus
-      });
-      
-      // If Fluent network is not accessible, automatically activate No-Blockchain Mode
-      if (!fluentStatus.isAccessible) {
-        useNoBlockchainMode("Fluent network is not accessible");
-      } else {
-        setErrorMessage(`${fluentStatus.message}. Ready to use math functions.`);
-        initializeReadOnlyMode();
+      setIsLoading(true);
+      try {
+        const fluentStatus = await checkNetworkStatus(FLUENT_NETWORK);
+        
+        setNetworkStatus({
+          fluent: fluentStatus
+        });
+        
+        // If Fluent network is not accessible, automatically activate No-Blockchain Mode
+        if (!fluentStatus.isAccessible) {
+          useNoBlockchainMode("Fluent network is not accessible");
+        } else {
+          setErrorMessage(`${fluentStatus.message}. Ready to use math functions.`);
+          await initializeReadOnlyMode();
+        }
+      } catch (error) {
+        console.error("Error during initialization:", error);
+        useNoBlockchainMode("Error during initialization");
+      } finally {
+        setIsLoading(false);
       }
     };
     
@@ -224,27 +255,35 @@ function App() {
   // Function to refresh network status
   const refreshNetworkStatus = async () => {
     setErrorMessage("Checking network status...");
+    setIsLoading(true);
     
-    const fluentStatus = await checkNetworkStatus(FLUENT_NETWORK);
-    
-    setNetworkStatus({
-      fluent: fluentStatus
-    });
-    
-    if (fluentStatus.isAccessible) {
-      setErrorMessage(`${fluentStatus.message}. Ready to use math functions.`);
+    try {
+      const fluentStatus = await checkNetworkStatus(FLUENT_NETWORK);
       
-      // Initialize read-only mode with actual contract
-      if (!useMock) {
-        initializeReadOnlyMode();
-      }
-    } else {
-      setErrorMessage(`${fluentStatus.message}. Using No-Blockchain Mode.`);
+      setNetworkStatus({
+        fluent: fluentStatus
+      });
       
-      // If not in No-Blockchain Mode already, switch to it
-      if (!useMock) {
-        useNoBlockchainMode("Fluent network is not accessible");
+      if (fluentStatus.isAccessible) {
+        setErrorMessage(`${fluentStatus.message}. Ready to use math functions.`);
+        
+        // Initialize read-only mode with actual contract
+        if (!useMock) {
+          await initializeReadOnlyMode();
+        }
+      } else {
+        setErrorMessage(`${fluentStatus.message}. Using No-Blockchain Mode.`);
+        
+        // If not in No-Blockchain Mode already, switch to it
+        if (!useMock) {
+          useNoBlockchainMode("Fluent network is not accessible");
+        }
       }
+    } catch (error) {
+      console.error("Error refreshing network status:", error);
+      useNoBlockchainMode("Error refreshing network status");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -315,11 +354,19 @@ function App() {
 
   return (
     <div className="app-container">
+      <button 
+        className="theme-toggle" 
+        onClick={toggleTheme}
+        aria-label="Toggle dark mode"
+      >
+        {theme === 'light' ? '🌙' : '☀️'}
+      </button>
+      
       <Header />
       
       <main className="main-content">
         {/* Network Status */}
-        <section className="network-status-section">
+        <section className={`network-status-section ${isLoading ? 'loading' : ''}`}>
           <h2>Network Status</h2>
           <div className="network-status-display">
             <div className="network-badge">
@@ -332,14 +379,20 @@ function App() {
               <button 
                 className="refresh-btn" 
                 onClick={refreshNetworkStatus}
+                disabled={isLoading}
               >
-                Refresh Network Status
+                {isLoading ? (
+                  <>
+                    <span className="loading-spinner"></span>
+                    Checking...
+                  </>
+                ) : 'Refresh Network Status'}
               </button>
               
               <button 
                 className="mock-mode-btn" 
                 onClick={() => useNoBlockchainMode("Manually activated")}
-                disabled={useMock}
+                disabled={useMock || isLoading}
               >
                 Use No-Blockchain Mode
               </button>
@@ -359,8 +412,8 @@ function App() {
           </div>
         </section>
         
-        {/* Math functions */}
-        {contract && (
+        {/* Math functions and visualization sections */}
+        {connectionStatus === 'connected' && contract ? (
           <>
             <MathFunctions
               contract={contract}
@@ -394,10 +447,22 @@ function App() {
               )}
             </div>
           </>
+        ) : (
+          <div className="loading-container">
+            <div className="loading-spinner large"></div>
+            <p>Initializing math functions...</p>
+          </div>
         )}
         
         <AboutSection />
       </main>
+      
+      <footer className="footer">
+        <div className="footer-content">
+          <p>PRB Math on Fluent - Mathematical functions powered by blockchain technology</p>
+          <p className="copyright">© {new Date().getFullYear()} - Built with React and Ethers.js</p>
+        </div>
+      </footer>
     </div>
   );
 }

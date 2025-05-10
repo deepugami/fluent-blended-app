@@ -10,6 +10,7 @@ path = "src/lib.rs"
 [dependencies]
 alloc = { version = "1.0.0", package = "rustc-std-workspace-alloc", optional = true }
 fluentbase-sdk = { git = "https://github.com/fluentlabs-xyz/fluentbase", branch = "devel", default-features = false }
+getrandom = { version = "0.2", features = ["js"] }
 
 [features]
 default = ["std"]

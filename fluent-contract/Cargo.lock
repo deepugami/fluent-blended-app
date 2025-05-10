@@ -375,9 +375,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.21"
+version = "1.2.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8691782945451c1c383942c4874dbe63814f61cb57ef773cda2972682b7bb3c0"
+checksum = "32db95edf998450acc7881c932f94cd9b05c87b4b2599e8bab064753da4acfd1"
 dependencies = [
  "shlex",
 ]
@@ -841,7 +841,7 @@ dependencies = [
 [[package]]
 name = "fluentbase-codec"
 version = "0.1.0"
-source = "git+https://github.com/fluentlabs-xyz/fluentbase?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
+source = "git+https://github.com/fluentlabs-xyz/fluentbase.git?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
 dependencies = [
  "alloy-primitives",
  "byteorder",
@@ -856,7 +856,7 @@ dependencies = [
 [[package]]
 name = "fluentbase-codec-derive"
 version = "0.1.0"
-source = "git+https://github.com/fluentlabs-xyz/fluentbase?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
+source = "git+https://github.com/fluentlabs-xyz/fluentbase.git?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
 dependencies = [
  "convert_case",
  "crypto-hashes",
@@ -869,7 +869,7 @@ dependencies = [
 [[package]]
 name = "fluentbase-poseidon"
 version = "0.1.0"
-source = "git+https://github.com/fluentlabs-xyz/fluentbase?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
+source = "git+https://github.com/fluentlabs-xyz/fluentbase.git?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
 dependencies = [
  "halo2curves 0.6.1 (git+https://github.com/privacy-scaling-explorations/halo2curves?tag=v0.6.1)",
  "poseidon",
@@ -878,7 +878,7 @@ dependencies = [
 [[package]]
 name = "fluentbase-runtime"
 version = "0.1.0"
-source = "git+https://github.com/fluentlabs-xyz/fluentbase?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
+source = "git+https://github.com/fluentlabs-xyz/fluentbase.git?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
 dependencies = [
  "fluentbase-codec",
  "fluentbase-poseidon",
@@ -897,7 +897,7 @@ dependencies = [
 [[package]]
 name = "fluentbase-rwasm"
 version = "0.1.0"
-source = "git+https://github.com/fluentlabs-xyz/fluentbase?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
+source = "git+https://github.com/fluentlabs-xyz/fluentbase.git?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
 dependencies = [
  "hashbrown 0.15.3",
  "rwasm",
@@ -907,7 +907,7 @@ dependencies = [
 [[package]]
 name = "fluentbase-sdk"
 version = "0.1.0"
-source = "git+https://github.com/fluentlabs-xyz/fluentbase?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
+source = "git+https://github.com/fluentlabs-xyz/fluentbase.git?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
 dependencies = [
  "fluentbase-codec",
  "fluentbase-runtime",
@@ -919,7 +919,7 @@ dependencies = [
 [[package]]
 name = "fluentbase-sdk-derive"
 version = "0.1.0"
-source = "git+https://github.com/fluentlabs-xyz/fluentbase?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
+source = "git+https://github.com/fluentlabs-xyz/fluentbase.git?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
 dependencies = [
  "crypto-hashes",
  "fluentbase-sdk-derive-core",
@@ -931,7 +931,7 @@ dependencies = [
 [[package]]
 name = "fluentbase-sdk-derive-core"
 version = "0.0.0"
-source = "git+https://github.com/fluentlabs-xyz/fluentbase?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
+source = "git+https://github.com/fluentlabs-xyz/fluentbase.git?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
 dependencies = [
  "convert_case",
  "crypto-hashes",
@@ -949,7 +949,7 @@ dependencies = [
 [[package]]
 name = "fluentbase-types"
 version = "0.1.0"
-source = "git+https://github.com/fluentlabs-xyz/fluentbase?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
+source = "git+https://github.com/fluentlabs-xyz/fluentbase.git?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
 dependencies = [
  "alloy-primitives",
  "alloy-rlp",
@@ -1023,9 +1023,9 @@ dependencies = [
 
 [[package]]
 name = "getrandom"
-version = "0.3.2"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73fea8450eea4bac3940448fb7ae50d91f034f941199fcd9d909a5a07aa455f0"
+checksum = "26145e563e54f2cadc477553f1ec5ee650b00862f0a58bcd12cbdc5f0ea2d2f4"
 dependencies = [
  "cfg-if",
  "libc",
@@ -1040,6 +1040,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2f960e0ba8eb5e47a7d45097dc4159b5ef63d82e62dc85894bfcfd8e6b85526c"
 dependencies = [
  "digest 0.10.7",
+]
+
+[[package]]
+name = "greeting-contract"
+version = "0.1.0"
+dependencies = [
+ "fluentbase-sdk",
+ "getrandom 0.2.16",
 ]
 
 [[package]]
@@ -1964,7 +1972,7 @@ version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "99d9a13982dcf210057a8a78572b2217b667c3beacbf3a0d8b454f6f82837d38"
 dependencies = [
- "getrandom 0.3.2",
+ "getrandom 0.3.3",
 ]
 
 [[package]]
@@ -2014,7 +2022,7 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 [[package]]
 name = "revm-primitives"
 version = "15.1.0"
-source = "git+https://github.com/fluentlabs-xyz/fluentbase?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
+source = "git+https://github.com/fluentlabs-xyz/fluentbase.git?branch=devel#a19aa7eb76567bdd33db9a714d0dea42ab0b879a"
 dependencies = [
  "alloy-eip2930",
  "alloy-eip7702",
@@ -2103,12 +2111,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3e75f6a532d0fd9f7f13144f392b6ad56a32696bfcd9c78f797f16bbb6f072d6"
 
 [[package]]
-name = "rustc-std-workspace-alloc"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9d441c3b2ebf55cebf796bfdc265d67fa09db17b7bb6bd4be75c509e1e8fec3"
-
-[[package]]
 name = "rustc_version"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2137,15 +2139,6 @@ dependencies = [
  "libc",
  "linux-raw-sys",
  "windows-sys",
-]
-
-[[package]]
-name = "rustsimplesc"
-version = "0.1.0"
-dependencies = [
- "fluentbase-sdk",
- "getrandom 0.2.16",
- "rustc-std-workspace-alloc",
 ]
 
 [[package]]
@@ -2570,7 +2563,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7437ac7763b9b123ccf33c338a5cc1bac6f69b45a136c19bdd8a65e3916435bf"
 dependencies = [
  "fastrand",
- "getrandom 0.3.2",
+ "getrandom 0.3.3",
  "once_cell",
  "rustix",
  "windows-sys",

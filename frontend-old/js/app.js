@@ -69,23 +69,23 @@ const contractABI = [
 ];
 
 // Contract deployment information
-// TODO: Update this with your actual deployed contract address after deployment
-const CONTRACT_ADDRESS = "0x8D4E34c7A6a757574665CaF2E23684b1dff31Fda"; // Updated contract address
+const CONTRACT_ADDRESS = "0x8D4E34c7A6a757574665CaF2E23684b1dff31Fda";
 
 // Fluent Network configuration
-// TODO: Update these values with the actual Fluent network configuration
 const FLUENT_NETWORK = {
   name: 'Fluent Developer Preview',
-  chainId: 20993,  // Fluent Developer Preview chain ID
-  rpcUrl: 'https://rpc.dev.thefluent.xyz/',  // Updated RPC URL
-  blockExplorer: 'https://blockscout.dev.thefluent.xyz/'  // Updated block explorer URL
+  chainId: 20993,
+  rpcUrl: 'https://rpc.dev.thefluent.xyz/',
+  blockExplorer: 'https://blockscout.dev.thefluent.xyz/'
 };
 
 // Global variables
 let provider;
+let readOnlyProvider;
 let contract;
+let readOnlyContract;
 let signer;
-let connectedAccount;
+let connectedAccount = null;
 let chart;
 let isCalculating = false;
 let contractCallHistory = [];
@@ -117,11 +117,43 @@ async function initialize() {
     // Setup network info display
     document.getElementById('networkName').textContent = FLUENT_NETWORK.name;
     
+    // Initialize read-only provider and contract
+    setupReadOnlyProvider();
+    
     // Setup graph
     setupGraph('sqrt');
     
     // Check if wallet is already connected
     checkWalletConnection();
+    
+    // Enable calculation buttons (even without wallet connection)
+    document.querySelectorAll('.calculate-btn').forEach(button => {
+        button.disabled = false;
+    });
+    
+    // Update connection status to show read-only mode
+    if (!connectedAccount) {
+        document.getElementById('connectionStatus').className = 'status read-only';
+        document.getElementById('connectionStatus').textContent = 'Read-Only Mode';
+    }
+
+    // Show calculation history section
+    document.getElementById('historySection').classList.remove('hidden');
+}
+
+function setupReadOnlyProvider() {
+    try {
+        // Create a read-only provider using the network's RPC URL
+        readOnlyProvider = new ethers.providers.JsonRpcProvider(FLUENT_NETWORK.rpcUrl);
+        
+        // Create a read-only contract instance
+        readOnlyContract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, readOnlyProvider);
+        
+        console.log('Read-only provider and contract setup successfully');
+    } catch (error) {
+        console.error('Error setting up read-only provider:', error);
+        displayErrorMessage('Failed to connect to Fluent network. Please try again later.');
+    }
 }
 
 function validateInput(event) {
@@ -146,6 +178,9 @@ function validateInput(event) {
     } else if ((functionName === 'ln' || functionName === 'log10' || functionName === 'log2') && value <= 0) {
         isValid = false;
         errorMessage = 'Value must be greater than 0';
+    } else if (functionName === 'sqrt' && value < 0) {
+        isValid = false;
+        errorMessage = 'Value must be non-negative';
     } else if (value > Number.MAX_SAFE_INTEGER || value < Number.MIN_SAFE_INTEGER) {
         isValid = false;
         errorMessage = 'Value is outside of safe range';
@@ -178,8 +213,8 @@ async function connectWallet() {
         // Check if MetaMask is installed
         if (typeof window.ethereum === 'undefined') {
             alert('MetaMask is not installed. Please install MetaMask to use this app.');
-            document.getElementById('connectionStatus').className = 'status disconnected';
-            document.getElementById('connectionStatus').textContent = 'Not Connected';
+            document.getElementById('connectionStatus').className = 'status read-only';
+            document.getElementById('connectionStatus').textContent = 'Read-Only Mode';
             return;
         }
 
@@ -231,126 +266,171 @@ async function connectWallet() {
             }
         }
 
-        // Update UI
-        document.getElementById('walletAddress').textContent = 
-            `${connectedAccount.substring(0, 6)}...${connectedAccount.substring(38)}`;
+        // Update UI to show connected state
         document.getElementById('walletInfo').classList.remove('hidden');
-        document.getElementById('connectWallet').textContent = 'Wallet Connected';
+        document.getElementById('walletAddress').textContent = `${connectedAccount.substring(0, 6)}...${connectedAccount.substring(38)}`;
         document.getElementById('connectionStatus').className = 'status connected';
         document.getElementById('connectionStatus').textContent = 'Connected';
+        document.getElementById('connectWallet').textContent = 'Disconnect';
+        document.getElementById('connectWallet').removeEventListener('click', connectWallet);
+        document.getElementById('connectWallet').addEventListener('click', disconnectWallet);
         
-        // Enable all calculation buttons
-        document.querySelectorAll('.calculate-btn').forEach(button => {
-            button.disabled = false;
-        });
+        console.log('Wallet connected successfully');
         
-        // Update graph with actual contract data
-        updateGraph();
+        // Refresh any existing graphs with real contract data
+        await updateGraph();
         
     } catch (error) {
         console.error('Error connecting wallet:', error);
-        alert('Failed to connect wallet. Please try again.');
         document.getElementById('connectionStatus').className = 'status error';
         document.getElementById('connectionStatus').textContent = 'Connection Failed';
+        alert('Failed to connect wallet. Please try again.');
     }
+}
+
+async function disconnectWallet() {
+    // Reset the UI
+    connectedAccount = null;
+    document.getElementById('walletInfo').classList.add('hidden');
+    document.getElementById('connectionStatus').className = 'status read-only';
+    document.getElementById('connectionStatus').textContent = 'Read-Only Mode';
+    document.getElementById('connectWallet').textContent = 'Connect Wallet';
+    document.getElementById('connectWallet').removeEventListener('click', disconnectWallet);
+    document.getElementById('connectWallet').addEventListener('click', connectWallet);
+    
+    // Refresh the graph with simulated data
+    await updateGraph();
+}
+
+function displayErrorMessage(message) {
+    const errorBanner = document.createElement('div');
+    errorBanner.className = 'error-banner';
+    errorBanner.textContent = message;
+    
+    // Add close button
+    const closeButton = document.createElement('button');
+    closeButton.className = 'close-error';
+    closeButton.innerHTML = '&times;';
+    closeButton.addEventListener('click', () => {
+        errorBanner.remove();
+    });
+    
+    errorBanner.appendChild(closeButton);
+    document.body.appendChild(errorBanner);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        if (document.body.contains(errorBanner)) {
+            errorBanner.remove();
+        }
+    }, 5000);
 }
 
 async function handleCalculation(event) {
     if (isCalculating) return;
     
-    const functionName = event.target.getAttribute('data-function');
+    isCalculating = true;
+    const functionName = event.target.dataset.function;
     const inputElement = document.getElementById(`${functionName}Input`);
     const resultElement = document.getElementById(`${functionName}Result`);
     const resultContainer = document.getElementById(`${functionName}ResultContainer`);
     
-    if (!inputElement.value) {
-        alert('Please enter a value');
-        return;
-    }
+    // Reset UI
+    resultContainer.classList.remove('error');
+    resultElement.textContent = 'Calculating...';
+    event.target.disabled = true;
+    
+    // Show loading animation
+    const originalButtonText = event.target.textContent;
+    event.target.innerHTML = '<span class="loading-spinner"></span> Calculating';
     
     try {
-        isCalculating = true;
-        
-        // Show loading indicator
-        resultElement.innerHTML = '<span class="loading">Calculating...</span>';
-        resultContainer.classList.remove('error');
-        
-        if (!contract) {
-            alert('Please connect your wallet first');
-            resultElement.textContent = '-';
-            isCalculating = false;
+        // Get input value
+        const inputValue = inputElement.value;
+        if (!inputValue || isNaN(parseFloat(inputValue))) {
+            resultContainer.classList.add('error');
+            resultElement.textContent = 'Invalid input';
             return;
         }
         
-        const inputValue = parseFloat(inputElement.value);
-        
-        // Validate input value
-        if ((functionName === 'ln' || functionName === 'log10' || functionName === 'log2') && inputValue <= 0) {
-            throw new Error(`${functionName}(${inputValue}) is undefined`);
-        }
-        
-        // Convert input value to appropriate BigNumber format with scaling
-        let input;
-        if (functionName === 'exp') {
-            // For exp, we need to handle negative inputs (int256)
-            input = ethers.BigNumber.from(
-                (BigInt(Math.round(inputValue * 1e6)) * SCALE_FACTOR / BigInt(1e6)).toString()
-            );
-        } else {
-            // For other functions, inputs are uint256
-            if (inputValue < 0) {
-                throw new Error('Please enter a positive number');
-            }
-            input = ethers.BigNumber.from(
-                (BigInt(Math.round(inputValue * 1e6)) * SCALE_FACTOR / BigInt(1e6)).toString()
-            );
-        }
+        // Convert input to fixed-point representation
+        const fixedInput = ethers.utils.parseUnits(inputValue, 18);
         
         // Record start time for performance measurement
         const startTime = performance.now();
         
-        // Call the appropriate contract function
+        // Call the appropriate contract function (using read-only contract if wallet not connected)
+        const contractToUse = connectedAccount ? contract : readOnlyContract;
         let result;
-        try {
-            result = await contract[functionName](input);
-        } catch (error) {
-            // Check if the error is from the MathError custom error
-            if (error.code === 'CALL_EXCEPTION') {
-                const errorData = error.error?.data?.originalError?.data;
-                if (errorData && errorData.startsWith('0x08c379a0')) {
-                    // This is a custom error with a message
-                    const decodedError = ethers.utils.defaultAbiCoder.decode(['string'], '0x' + errorData.slice(10));
-                    throw new Error(decodedError[0]);
-                }
-            }
-            throw error;
+        
+        switch (functionName) {
+            case 'sqrt':
+                result = await contractToUse.sqrt(fixedInput);
+                break;
+            case 'exp':
+                result = await contractToUse.exp(fixedInput);
+                break;
+            case 'ln':
+                result = await contractToUse.ln(fixedInput);
+                break;
+            case 'log10':
+                result = await contractToUse.log10(fixedInput);
+                break;
+            case 'log2':
+                result = await contractToUse.log2(fixedInput);
+                break;
+            default:
+                throw new Error(`Unknown function: ${functionName}`);
         }
         
-        // Record end time and calculate duration
+        // Record end time
         const endTime = performance.now();
         const duration = endTime - startTime;
         
-        // Add to history
-        contractCallHistory.push({
-            function: functionName,
-            input: inputValue,
-            result: result.toString(),
-            timestamp: new Date().toISOString(),
-            duration: duration
-        });
-        
-        // Format the result (convert from fixed-point representation)
+        // Format and display result
         const formattedResult = formatResult(result);
         resultElement.textContent = formattedResult;
         
-        // Add the calculation to the calculation history
+        // Add success effect
+        resultContainer.classList.add('success');
+        setTimeout(() => {
+            resultContainer.classList.remove('success');
+        }, 1000);
+        
+        // Update calculation history
         updateCalculationHistory(functionName, inputValue, formattedResult, duration);
+        
+        // Show history section
+        document.getElementById('historySection').classList.remove('hidden');
         
     } catch (error) {
         console.error(`Error calculating ${functionName}:`, error);
-        resultElement.textContent = 'Error: ' + error.message;
         resultContainer.classList.add('error');
+        
+        // Check if the error is a contract revert with a specific reason
+        if (error.reason) {
+            resultElement.textContent = `Error: ${error.reason}`;
+        } else if (error.message && error.message.includes('MathError')) {
+            // Extract the error message from the revert reason
+            const errorMatch = error.message.match(/MathError\((.*?)\)/);
+            if (errorMatch && errorMatch[1]) {
+                resultElement.textContent = `Error: ${errorMatch[1].replace(/["']/g, '')}`;
+            } else {
+                resultElement.textContent = 'Calculation error';
+            }
+        } else if (error.message && error.message.includes('network changed')) {
+            resultElement.textContent = 'Network connection error';
+            displayErrorMessage('Network connection error. Please check your connection to the Fluent network.');
+        } else if (error.code === 'TIMEOUT') {
+            resultElement.textContent = 'Request timed out';
+            displayErrorMessage('The calculation request timed out. Please try again later.');
+        } else {
+            resultElement.textContent = 'Calculation error';
+        }
     } finally {
+        // Reset UI
+        event.target.disabled = false;
+        event.target.innerHTML = originalButtonText;
         isCalculating = false;
     }
 }
@@ -395,16 +475,27 @@ function updateCalculationHistory(functionName, input, result, duration) {
         <div class="history-time">${duration.toFixed(2)}ms</div>
     `;
     
-    // Add to top of history
+    // Add to top of history with animation
+    historyItem.style.opacity = '0';
+    historyItem.style.transform = 'translateY(-10px)';
+    
     if (historyContainer.firstChild) {
         historyContainer.insertBefore(historyItem, historyContainer.firstChild);
     } else {
         historyContainer.appendChild(historyItem);
     }
     
+    // Trigger animation
+    setTimeout(() => {
+        historyItem.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        historyItem.style.opacity = '1';
+        historyItem.style.transform = 'translateY(0)';
+    }, 10);
+    
     // Limit history to 10 items
-    while (historyContainer.children.length > 10) {
-        historyContainer.removeChild(historyContainer.lastChild);
+    const historyItems = historyContainer.querySelectorAll('.history-item');
+    if (historyItems.length > 10) {
+        historyContainer.removeChild(historyItems[historyItems.length - 1]);
     }
     
     // Show the history section if it was hidden
@@ -430,82 +521,54 @@ function copyResultToClipboard(event) {
 }
 
 function setupGraph(functionName) {
-    const ctx = document.getElementById('graphCanvas').getContext('2d');
-    
-    // Generate placeholder data for initial display
+    // We'll initialize the graph with client-side data first
+    // and later update it with contract data when possible
     const data = generateGraphData(functionName);
     
-    // Chart.js configuration with improved styling
+    // Create initial chart
+    const ctx = document.getElementById('graphCanvas').getContext('2d');
     chart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: data.x,
             datasets: [{
                 label: getGraphTitle(functionName),
-                data: data.y,
+                data: data,
                 borderColor: '#4a90e2',
                 backgroundColor: 'rgba(74, 144, 226, 0.1)',
-                fill: true,
                 tension: 0.4,
-                pointRadius: 3,
-                pointHoverRadius: 5,
+                pointRadius: 4,
                 pointBackgroundColor: '#4a90e2',
-                borderWidth: 2
+                fill: true
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        font: {
-                            family: 'Segoe UI, sans-serif',
-                            size: 12
-                        }
-                    }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                    padding: 10,
-                    titleFont: {
-                        size: 14,
-                        weight: 'bold'
-                    },
-                    bodyFont: {
-                        size: 13
-                    },
-                    displayColors: false
-                }
+            parsing: {
+                xAxisKey: 'x',
+                yAxisKey: 'y'
             },
             scales: {
                 x: {
+                    type: 'linear',
                     title: {
                         display: true,
-                        text: 'Input Value (x)',
-                        font: {
-                            weight: 'bold'
-                        }
-                    },
-                    grid: {
-                        color: 'rgba(200, 200, 200, 0.2)'
+                        text: 'x'
                     }
                 },
                 y: {
                     title: {
                         display: true,
-                        text: 'Output Value',
-                        font: {
-                            weight: 'bold'
+                        text: 'f(x)'
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${functionName}(${context.parsed.x.toFixed(2)}) = ${context.parsed.y.toFixed(4)}`;
                         }
-                    },
-                    grid: {
-                        color: 'rgba(200, 200, 200, 0.2)'
                     }
                 }
             }
@@ -515,181 +578,254 @@ function setupGraph(functionName) {
 
 async function updateGraph() {
     const functionName = document.getElementById('graphFunction').value;
-    
-    // Update graph title display
     document.getElementById('currentGraphFunction').textContent = getGraphTitle(functionName);
     
-    // If wallet is connected, try to get real data from the contract
-    let data;
-    if (contract) {
-        try {
+    // Destroy existing chart if it exists
+    if (chart) {
+        chart.destroy();
+    }
+    
+    try {
+        // Get real contract data when possible
+        let data;
+        
+        if (readOnlyContract) {
+            // Show loading indicator
             document.getElementById('graphLoadingIndicator').classList.remove('hidden');
-            data = await generateContractData(functionName);
-            document.getElementById('graphLoadingIndicator').classList.add('hidden');
-        } catch (error) {
-            console.error('Error generating contract data:', error);
+            
+            try {
+                data = await generateContractData(functionName);
+            } catch (error) {
+                console.error('Error getting contract data:', error);
+                // Fall back to client-side calculation
+                data = generateGraphData(functionName);
+            } finally {
+                document.getElementById('graphLoadingIndicator').classList.add('hidden');
+            }
+        } else {
+            // Use client-side calculation as fallback
             data = generateGraphData(functionName);
-            document.getElementById('graphLoadingIndicator').classList.add('hidden');
         }
-    } else {
-        data = generateGraphData(functionName);
+        
+        // Create the chart
+        const ctx = document.getElementById('graphCanvas').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: getGraphTitle(functionName),
+                    data: data,
+                    borderColor: '#4a90e2',
+                    backgroundColor: 'rgba(74, 144, 226, 0.1)',
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#4a90e2',
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                parsing: {
+                    xAxisKey: 'x',
+                    yAxisKey: 'y'
+                },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        title: {
+                            display: true,
+                            text: 'x'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'f(x)'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${functionName}(${context.parsed.x.toFixed(2)}) = ${context.parsed.y.toFixed(4)}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error creating graph:', error);
     }
-    
-    // Update chart
-    chart.data.labels = data.x;
-    chart.data.datasets[0].label = getGraphTitle(functionName);
-    chart.data.datasets[0].data = data.y;
-    
-    // Customize Y axis scale based on function
-    if (functionName === 'exp') {
-        chart.options.scales.y.type = 'logarithmic';
-    } else {
-        chart.options.scales.y.type = 'linear';
-    }
-    
-    chart.update();
 }
 
 async function generateContractData(functionName) {
-    const x = [];
-    const y = [];
-    
-    // Different range based on function type
-    let start, end, step, numPoints = 50;
-    
-    switch (functionName) {
-        case 'sqrt':
-            start = 0;
-            end = 10;
-            break;
-        case 'exp':
-            start = -3;
-            end = 3;
-            break;
-        case 'ln':
-        case 'log10':
-        case 'log2':
-            start = 0.1;
-            end = 10;
-            break;
-        default:
-            start = 0;
-            end = 10;
-    }
-    
-    step = (end - start) / numPoints;
-    
-    // Batch contract calls for better performance
-    const calls = [];
-    const points = [];
-    
-    for (let i = 0; i < numPoints; i++) {
-        const point = start + i * step;
-        points.push(point);
+    try {
+        document.getElementById('graphLoadingIndicator').classList.remove('hidden');
         
-        // Create the appropriate BigNumber input
-        let input;
-        if (functionName === 'exp') {
-            input = ethers.BigNumber.from(
-                (BigInt(Math.round(point * 1e6)) * SCALE_FACTOR / BigInt(1e6)).toString()
-            );
-        } else {
-            if (point <= 0 && (functionName === 'ln' || functionName === 'log10' || functionName === 'log2')) {
-                // Skip negative/zero inputs for logarithm functions
-                continue;
-            }
-            input = ethers.BigNumber.from(
-                (BigInt(Math.round(Math.max(0, point) * 1e6)) * SCALE_FACTOR / BigInt(1e6)).toString()
-            );
-        }
+        // Use the read-only contract if wallet is not connected
+        const contractToUse = connectedAccount ? contract : readOnlyContract;
         
-        calls.push(contract[functionName](input));
-    }
-    
-    // Execute all calls in parallel
-    const results = await Promise.all(calls);
-    
-    // Process results
-    for (let i = 0; i < results.length; i++) {
-        x.push(points[i].toFixed(2));
+        const points = 20;
+        const data = [];
         
-        try {
-            // Convert the result from fixed-point to regular number
-            const resultBigInt = BigInt(results[i].toString());
-            const value = Number(resultBigInt) / Number(SCALE_FACTOR);
-            y.push(value);
-        } catch (error) {
-            console.error('Error processing result:', error);
-            y.push(null);
-        }
-    }
-    
-    return { x, y };
-}
-
-function generateGraphData(functionName) {
-    const x = [];
-    const y = [];
-    
-    // Different range based on function type
-    let start, end, step;
-    
-    switch (functionName) {
-        case 'sqrt':
-            start = 0;
-            end = 10;
-            step = 0.2;
-            break;
-        case 'exp':
-            start = -3;
-            end = 3;
-            step = 0.1;
-            break;
-        case 'ln':
-        case 'log10':
-        case 'log2':
-            start = 0.1;
-            end = 10;
-            step = 0.2;
-            break;
-        default:
-            start = 0;
-            end = 10;
-            step = 0.2;
-    }
-    
-    // Generate points
-    for (let i = start; i <= end; i += step) {
-        x.push(i.toFixed(1));
-        
-        // Calculate y values based on mathematical functions
-        // These are placeholder implementations - in a real app, you'd use the contract
-        let value;
+        // Generate appropriate input values based on the function
+        let startValue, endValue;
         
         switch (functionName) {
             case 'sqrt':
-                value = Math.sqrt(i);
+                startValue = 0;
+                endValue = 100;
                 break;
             case 'exp':
-                value = Math.exp(i);
+                startValue = -5;
+                endValue = 5;
                 break;
             case 'ln':
-                value = i > 0 ? Math.log(i) : null;
-                break;
             case 'log10':
-                value = i > 0 ? Math.log10(i) : null;
-                break;
             case 'log2':
-                value = i > 0 ? Math.log2(i) : null;
+                startValue = 0.1;
+                endValue = 100;
                 break;
             default:
-                value = i;
+                startValue = 0;
+                endValue = 10;
         }
         
-        y.push(value);
+        const step = (endValue - startValue) / points;
+        
+        // Array of promises for parallel execution
+        const promises = [];
+        
+        for (let i = 0; i <= points; i++) {
+            const x = startValue + (step * i);
+            const fixedX = ethers.utils.parseUnits(x.toString(), 18);
+            
+            let promise;
+            switch (functionName) {
+                case 'sqrt':
+                    promise = contractToUse.sqrt(fixedX);
+                    break;
+                case 'exp':
+                    promise = contractToUse.exp(fixedX);
+                    break;
+                case 'ln':
+                    // Ensure x > 0 for logarithm
+                    if (x > 0) {
+                        promise = contractToUse.ln(fixedX);
+                    } else {
+                        continue;
+                    }
+                    break;
+                case 'log10':
+                    if (x > 0) {
+                        promise = contractToUse.log10(fixedX);
+                    } else {
+                        continue;
+                    }
+                    break;
+                case 'log2':
+                    if (x > 0) {
+                        promise = contractToUse.log2(fixedX);
+                    } else {
+                        continue;
+                    }
+                    break;
+                default:
+                    continue;
+            }
+            
+            promises.push({ x, promise });
+        }
+        
+        // Add a small delay to ensure loading indicator is visible
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Process promises with a small delay between each to avoid overwhelming the network
+        for (const { x, promise } of promises) {
+            try {
+                const result = await promise;
+                const y = ethers.utils.formatUnits(result, 18);
+                data.push({ x, y: parseFloat(y) });
+                
+                // Small delay between requests to reduce network load
+                await new Promise(resolve => setTimeout(resolve, 50));
+            } catch (error) {
+                console.error(`Error calculating ${functionName}(${x}):`, error);
+                // Skip this point on error
+            }
+        }
+        
+        document.getElementById('graphLoadingIndicator').classList.add('hidden');
+        return data;
+    } catch (error) {
+        console.error('Error generating contract data:', error);
+        document.getElementById('graphLoadingIndicator').classList.add('hidden');
+        displayErrorMessage('Unable to load contract data. Using simulated values instead.');
+        return generateGraphData(functionName); // Fallback to client-side calculation
+    }
+}
+
+function generateGraphData(functionName) {
+    // Generate client-side data for the graph
+    const data = [];
+    
+    // Different range based on function type
+    let start, end, points = 50;
+    
+    switch (functionName) {
+        case 'sqrt':
+            start = 0;
+            end = 100;
+            break;
+        case 'exp':
+            start = -5;
+            end = 5;
+            break;
+        case 'ln':
+        case 'log10':
+        case 'log2':
+            start = 0.1;
+            end = 100;
+            break;
+        default:
+            start = 0;
+            end = 10;
     }
     
-    return { x, y };
+    const step = (end - start) / points;
+    
+    // Generate data points
+    for (let i = 0; i <= points; i++) {
+        const x = start + i * step;
+        let y;
+        
+        switch (functionName) {
+            case 'sqrt':
+                y = Math.sqrt(x);
+                break;
+            case 'exp':
+                y = Math.exp(x);
+                break;
+            case 'ln':
+                y = Math.log(x);
+                break;
+            case 'log10':
+                y = Math.log10(x);
+                break;
+            case 'log2':
+                y = Math.log2(x);
+                break;
+            default:
+                y = x;
+        }
+        
+        data.push({ x, y });
+    }
+    
+    return data;
 }
 
 function getGraphTitle(functionName) {

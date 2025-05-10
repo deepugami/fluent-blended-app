@@ -14,6 +14,27 @@ const AboutSection = () => {
           The Fluent network enables a new generation of blockchain applications 
           with enhanced capabilities, improved performance, and deeper interoperability.
         </p>
+        
+        <div className="features-grid">
+          <div className="feature-card">
+            <div className="feature-icon">🚀</div>
+            <h4>High Performance</h4>
+            <p>Optimized mathematical functions with blockchain-level precision</p>
+          </div>
+          
+          <div className="feature-card">
+            <div className="feature-icon">🔒</div>
+            <h4>Secure Calculations</h4>
+            <p>Calculations performed on-chain for maximum security</p>
+          </div>
+          
+          <div className="feature-card">
+            <div className="feature-icon">⚙️</div>
+            <h4>No Wallet Required</h4>
+            <p>Use in No-Blockchain Mode for quick access</p>
+          </div>
+        </div>
+        
         <div className="tech-stack">
           <h4>Technology Stack:</h4>
           <ul>
