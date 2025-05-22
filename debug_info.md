@@ -227,4 +227,53 @@ contract FluentSdkRustTypesTest {
 
 5. Are there any specific configurations or patterns we should follow when deploying blended contracts?
 
-Thank you for your assistance! 
+Thank you for your assistance!
+
+## Frontend Fixes (Current Update)
+
+We've made the following changes to address the frontend connectivity issues:
+
+1. Updated the RPC URL in the App.jsx file from `https://rpc.dev.thefluent.xyz/` to `https://rpc.dev.gblend.xyz/` to match the current Fluent Developer Preview endpoint.
+
+2. Removed "No-Blockchain Mode" functionality as requested:
+   - Removed the "Use No-Blockchain Mode" button
+   - Removed the `useMock` state and related functions
+   - Updated error handling to show proper connection errors instead of falling back to mock mode
+   - Added a better UI for connection errors with a retry button
+
+3. Updated the network status display to show more accurate information:
+   - Changed mode display from "No-Blockchain Mode/Read-Only Mode" to "Connected/Disconnected"
+   - Added more descriptive connection error messages
+
+4. Added CSS styles for the new connection error UI elements
+
+The application now correctly attempts to connect to the Fluent network and displays appropriate error messages when unable to connect, without falling back to a no-blockchain mode.
+
+The error you're seeing: "Fluent Developer Preview is not accessible: missing response" indicates that there might still be connectivity issues with the Fluent Developer Preview network. This could be due to:
+
+1. The network might be temporarily unavailable
+2. The RPC endpoint might have changed again
+3. There might be firewall or connectivity issues preventing access to the endpoint
+
+If the Fluent network is indeed not accessible, this is now properly reported by the application instead of silently falling back to a mock implementation.
+
+## Latest Frontend Improvements (Error Handling)
+
+Building on our previous frontend fixes, we've further enhanced the error handling capabilities:
+
+1. Improved the contract verification error messages:
+   - Added more detailed descriptions of contract-related errors
+   - Clearly differentiated between network connectivity issues and contract interaction problems
+   - Added context about the known issues with Rust-Solidity cross-contract calls
+
+2. Enhanced the error display UI:
+   - Added a special view for contract-related errors
+   - Included a link to view the contract on the block explorer
+   - Improved the styling of error messages and action buttons
+
+3. Browser console errors:
+   - Most of the console errors seen are from third-party browser extensions (cryptocurrency wallets)
+   - These errors are not directly related to our application and cannot be fixed from our side
+   - The only application-specific error is the contract verification failure, which we've now handled with better user feedback
+
+These improvements don't fix the underlying contract interaction issues, but they provide clearer information to users about what's happening and offer alternatives like viewing the contract on the explorer. 

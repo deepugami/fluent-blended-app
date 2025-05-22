@@ -69,8 +69,8 @@ const FLUENT_CONTRACT_ADDRESS = "0x87b99c706e17211f313e21f1ed98782e19e91fb2"; //
 const FLUENT_NETWORK = {
   name: 'Fluent Developer Preview',
   chainId: 20993,
-  rpcUrl: 'https://rpc.dev.thefluent.xyz/',
-  blockExplorer: 'https://blockscout.dev.thefluent.xyz/',
+  rpcUrl: 'https://rpc.dev.gblend.xyz/', // Updated to use the correct RPC URL
+  blockExplorer: 'https://blockscout.dev.gblend.xyz/',
   contractAddress: FLUENT_CONTRACT_ADDRESS,
   nativeCurrency: {
     name: 'Fluent',
@@ -182,7 +182,6 @@ function App() {
   const [connectionStatus, setConnectionStatus] = useState('connecting');
   const [selectedFunction, setSelectedFunction] = useState('sqrt');
   const [calculationHistory, setCalculationHistory] = useState([]);
-  const [useMock, setUseMock] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [networkStatus, setNetworkStatus] = useState({
@@ -198,7 +197,6 @@ function App() {
       setTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
     } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      // Use dark mode if user has dark mode preference in their OS
       setTheme('dark');
       document.documentElement.setAttribute('data-theme', 'dark');
     }
@@ -207,11 +205,11 @@ function App() {
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
   };
 
-  // Check network status on load
+  // Check network status on component mount
   useEffect(() => {
     const checkNetworks = async () => {
       setIsLoading(true);
@@ -222,16 +220,17 @@ function App() {
           fluent: fluentStatus
         });
         
-        // If Fluent network is not accessible, automatically activate No-Blockchain Mode
-        if (!fluentStatus.isAccessible) {
-          useNoBlockchainMode("Fluent network is not accessible");
-        } else {
+        if (fluentStatus.isAccessible) {
           setErrorMessage(`${fluentStatus.message}. Ready to use math functions.`);
           await initializeReadOnlyMode();
+        } else {
+          setErrorMessage(`${fluentStatus.message}. Unable to connect to Fluent network.`);
+          setConnectionStatus('disconnected');
         }
       } catch (error) {
         console.error("Error during initialization:", error);
-        useNoBlockchainMode("Error during initialization");
+        setErrorMessage(`Error during initialization: ${error.message}`);
+        setConnectionStatus('disconnected');
       } finally {
         setIsLoading(false);
       }
@@ -254,34 +253,18 @@ function App() {
       
       if (fluentStatus.isAccessible) {
         setErrorMessage(`${fluentStatus.message}. Ready to use math functions.`);
-        
-        // Initialize read-only mode with actual contract
-        if (!useMock) {
-          await initializeReadOnlyMode();
-        }
+        await initializeReadOnlyMode();
       } else {
-        setErrorMessage(`${fluentStatus.message}. Using No-Blockchain Mode.`);
-        
-        // If not in No-Blockchain Mode already, switch to it
-        if (!useMock) {
-          useNoBlockchainMode("Fluent network is not accessible");
-        }
+        setErrorMessage(`${fluentStatus.message}. Unable to connect to Fluent network.`);
+        setConnectionStatus('disconnected');
       }
     } catch (error) {
       console.error("Error refreshing network status:", error);
-      useNoBlockchainMode("Error refreshing network status");
+      setErrorMessage(`Error refreshing network status: ${error.message}`);
+      setConnectionStatus('disconnected');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Helper function to use No-Blockchain Mode
-  const useNoBlockchainMode = (reason) => {
-    console.log(`Using No-Blockchain Mode. Reason: ${reason}`);
-    const mockContract = createMockContract();
-    setContract(mockContract);
-    setConnectionStatus('connected');
-    setUseMock(true);
   };
 
   // Initialize read-only mode with the contract on Fluent network
@@ -311,19 +294,20 @@ function App() {
         // Contract exists, set it up
         setContract(contractInstance);
         setConnectionStatus('connected');
-        setUseMock(false);
         console.log("Connected to contract in read-only mode");
       } catch (contractError) {
         console.log("Contract verification failed:", contractError.message);
-        setErrorMessage(`Contract verification failed: ${contractError.message}. Falling back to No-Blockchain Mode.`);
         
-        // Use No-Blockchain Mode
-        useNoBlockchainMode("Contract verification failed");
+        // More detailed error message for contract issues
+        const detailedError = `Contract verification failed: The deployed contract at ${FLUENT_NETWORK.contractAddress} exists but there was an error calling its functions. This is likely a contract-level issue, not a connection problem.`;
+        
+        setErrorMessage(detailedError);
+        setConnectionStatus('disconnected');
       }
     } catch (error) {
       console.warn('Error connecting to blockchain:', error.message);
-      setErrorMessage(`Failed to connect to ${FLUENT_NETWORK.name}: ${error.message}. Using No-Blockchain Mode.`);
-      useNoBlockchainMode(error.message);
+      setErrorMessage(`Failed to connect to ${FLUENT_NETWORK.name}: ${error.message}.`);
+      setConnectionStatus('disconnected');
     }
   };
 
@@ -376,14 +360,6 @@ function App() {
                   </>
                 ) : 'Refresh Network Status'}
               </button>
-              
-              <button 
-                className="mock-mode-btn" 
-                onClick={() => useNoBlockchainMode("Manually activated")}
-                disabled={useMock || isLoading}
-              >
-                Use No-Blockchain Mode
-              </button>
             </div>
           </div>
           
@@ -391,11 +367,11 @@ function App() {
           
           {/* Mode Information */}
           <div className="mode-info">
-            <h3>Current Mode: {useMock ? "No-Blockchain Mode" : "Read-Only Mode"}</h3>
+            <h3>Current Mode: {connectionStatus === 'connected' ? "Connected" : "Disconnected"}</h3>
             <p className="mode-description">
-              {useMock 
-                ? "Using local math implementations. Results are calculated in-browser without blockchain interaction." 
-                : "Connected to Fluent network. Math functions are executed on the blockchain."}
+              {connectionStatus === 'connected' 
+                ? "Connected to Fluent network. Math functions are executed on the blockchain." 
+                : "Not connected to Fluent network. Please check network connectivity."}
             </p>
           </div>
         </section>
@@ -437,8 +413,43 @@ function App() {
           </>
         ) : (
           <div className="loading-container">
-            <div className="loading-spinner large"></div>
-            <p>Initializing math functions...</p>
+            {isLoading ? (
+              <>
+                <div className="loading-spinner large"></div>
+                <p>Initializing math functions...</p>
+              </>
+            ) : (
+              <div className="connection-error">
+                {connectionStatus === 'disconnected' && errorMessage && errorMessage.includes('Contract verification failed') ? (
+                  <>
+                    <h3>Contract Interaction Issue</h3>
+                    <p>{errorMessage}</p>
+                    <p>This is a known issue with Rust-Solidity cross-contract calls on the Fluent network.</p>
+                    <div className="error-actions">
+                      <a 
+                        href={`${FLUENT_NETWORK.blockExplorer}address/${FLUENT_NETWORK.contractAddress}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="explorer-link"
+                      >
+                        View Contract on Explorer
+                      </a>
+                      <button onClick={refreshNetworkStatus} className="retry-button">
+                        Retry Connection
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p>Unable to connect to the Fluent network.</p>
+                    <p>Please check network connectivity and try again.</p>
+                    <button onClick={refreshNetworkStatus} className="retry-button">
+                      Retry Connection
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
         
