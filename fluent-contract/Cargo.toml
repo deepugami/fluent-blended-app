@@ -7,7 +7,7 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-fluentbase-sdk = { git = "https://github.com/fluentlabs-xyz/fluentbase.git", rev = "1c63e42" }
+fluentbase-sdk = { git = "https://github.com/fluentlabs-xyz/fluentbase.git", tag = "v0.1.0-dev" }
 getrandom = { version = "0.2", features = ["js"] }
 
 [profile.release]

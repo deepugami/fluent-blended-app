@@ -8,6 +8,8 @@ dist/
 build/
 */dist/
 */build/
+out/
+cache/
 
 # Rust build artifacts
 rust/target/
@@ -21,6 +23,7 @@ rust/target/
 temp/
 temp-blended/
 temp-deploy/
+frontend_old/
 
 # Environment variables
 .env

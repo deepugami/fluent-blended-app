@@ -1,65 +1,138 @@
-# PRB Math Blended App - Fixed Version
+# Fluent Blended App
 
-A Blended application that implements PRB Math functions using both Solidity and Rust on the Fluent network. This repository has been updated to fix contract errors and implement the correct structure based on the blended-template repository.
+This is a blended application that combines Solidity and Rust contracts on the Fluent network. The application demonstrates how Solidity contracts can call Rust contracts, leveraging the best of both languages.
 
-## Network Compatibility Status
+## Current Status
 
-**Important Note**: 
-- The application is currently working properly on **Ethereum Sepolia** testnet.
-- The application is **NOT working** on the Fluent network due to errors in the WebAssembly file when deploying the Rust contract on Fluent.
+- ✅ Rust contract successfully built and deployed at: `0x87b99c706e17211f313e21f1ed98782e19e91fb2`
+- ✅ Solidity contract successfully deployed at: `0xAFc63F12b732701526f48E8256Ad35c888336E54`
+- ❌ Contract interaction is currently failing - both contracts are deployed but the test function calls are reverting
 
-## Fixes Implemented
+## Prerequisites
 
-1. **Rust Contract**: Updated the lib.rs file to correctly use the proper interfaces and types from the fluentbase-sdk.
-2. **Cargo.toml**: Updated the Cargo.toml with the correct dependencies and features.
-3. **Solidity Contract**: Created a new FluentSdkRustTypesTest.sol contract that interfaces properly with the Rust contract.
-4. **JavaScript Integration**: Created two JavaScript files for testing: solidity.js (to test the Solidity contract calling Rust) and rust.js (to directly call the Rust contract).
-
-## Deployment Instructions
-
-For detailed deployment instructions, see [deployment-instructions.md](./deployment-instructions.md).
-
-### Quick Start
-
-1. Deploy the Rust contract
+1. Install the `gblend` CLI tool
    ```bash
-   cd rust
-   gblend build rust -r
-   gblend deploy --private-key $devTestnetPrivateKey --dev lib.wasm --gas-limit 3000000
+   cargo install gblend
    ```
 
-2. Deploy the Solidity contract with the Rust contract address
+2. Install Node.js and NPM
+
+3. Install Foundry for Solidity contracts
    ```bash
-   cd ../solidity
-   forge create FluentSdkRustTypesTest.sol:FluentSdkRustTypesTest \
-   --constructor-args-path constructor-args.txt \
-   --private-key $devTestnetPrivateKey \
-   --rpc-url https://rpc.dev.gblend.xyz/ \
-   --broadcast
+   curl -L https://foundry.paradigm.xyz | bash
    ```
 
-3. Test the integration with JavaScript
-   ```bash
-   npm install
-   node solidity.js
-   node rust.js
-   ```
+4. Fluent wallet with funds on the Developer Preview network
+   - You can get funds from the [Fluent Faucet](https://faucet.dev.gblend.xyz/)
 
-## Contract Addresses
+## Project Structure
 
-After deployment, update these addresses in the JavaScript files:
+- `fluent-contract/`: A simple Rust contract using fluentbase-sdk
+- `rust/`: The main Rust contract with data type examples
+- `solidity/`: Solidity contract that interfaces with the Rust contract
+- `deploy.js`: Deployment script for both contracts
+- `test.js`: Testing script to verify deployed contracts
+- `forge-solidity/`: Foundry project where the Solidity contract was deployed from
 
-- Rust Contract: `0x04160C19738bB6429c0554fBdC11A96079D7297D` (placeholder)
-- Solidity Contract: `0xD96a275ca2e9Ef5B10bF9fDb106718b670Afc8B2` (placeholder)
+## Configuration
 
-## Notes
+The wallet address and private key are already configured in the scripts:
+- Address: 0xa774bf3d9085596ebdea6d9a93763b78cf9686f2
+- Private Key: Securely stored in the deploy.js script
 
-This implementation follows the structure and practices recommended in the [blended-template](https://github.com/fluentlabs-xyz/blended-template) repository. The original PRB Math functionality has been replaced with more basic type demonstration to focus on the core Rust-Solidity integration.
+## Deployed Contracts
+
+- Rust Contract: `0x87b99c706e17211f313e21f1ed98782e19e91fb2`
+- Solidity Contract: `0xAFc63F12b732701526f48E8256Ad35c888336E54`
+
+## Building and Deployment
+
+### Install Dependencies
+
+```bash
+npm install
+```
+
+### Deploy Contracts
+
+Run the deployment script:
+
+```bash
+node deploy.js
+```
+
+This script will:
+1. Build the Rust contract
+2. Deploy the Rust contract to Fluent
+3. Deploy the Solidity contract with the Rust contract address
+4. Save deployment results to `deployment-result.json`
+
+### Test Deployed Contracts
+
+After deployment, run the test script:
+
+```bash
+node test.js
+```
+
+Or with specific addresses:
+
+```bash
+node test.js <rustContractAddress> <solidityContractAddress>
+```
+
+## Understanding the Contracts
+
+### Rust Contract (`rust/src/lib.rs`)
+
+The Rust contract implements functions that return different types:
+- String
+- Uint256
+- Int256
+- Address
+- Bytes
+- Bytes32
+- Boolean
+
+### Solidity Contract (`solidity/FluentSdkRustTypesTest.sol`)
+
+The Solidity contract acts as an interface to the Rust contract, calling its functions and demonstrating the interoperability between the two languages.
+
+## Troubleshooting
+
+### Common Issues
+
+1. **"Could not extract Rust contract address from deployment output"**
+   - This might happen if the output format from `gblend deploy` has changed
+   - Check the actual output and adjust the regex in deploy.js
+
+2. **Deployment fails with errors**
+   - Make sure your wallet has enough funds on Fluent Developer Preview network
+   - Reset your nonce in the wallet extension (Settings -> Advanced -> Clear activity and nonce data -> Clear)
+
+3. **Contract interaction failing**
+   - The deployed contracts exist on-chain, but there seems to be an issue with function calls between them
+   - This could be due to a mismatch in the interface definitions or issues with the Fluent Devnet
+
+### Updating SDK Version
+
+If you need to update the SDK version:
+
+```bash
+cd rust
+cargo clean
+cargo update -p fluentbase-sdk
+```
+
+## Fluent Network Details
+
+- RPC URL: https://rpc.dev.gblend.xyz/
+- Block Explorer: https://blockscout.dev.gblend.xyz/
 
 ## Resources
 
 - [Fluent Documentation](https://docs.fluent.xyz/developer-guides/building-a-blended-app/)
-- [Blended Template](https://github.com/fluentlabs-xyz/blended-template)
+- [Fluentbase SDK](https://github.com/fluentlabs-xyz/fluentbase)
 - [Fluent Developer Preview](https://faucet.dev.gblend.xyz/)
 
 ## Overview
