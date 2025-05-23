@@ -1,58 +1,58 @@
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import Header from './components/Header';
-import MathFunctions from './components/MathFunctions';
+import RustTypesDemo from './components/MathFunctions';
 import GraphVisualization from './components/GraphVisualization';
 import AboutSection from './components/AboutSection';
 import './styles/App.css';
 
-// Contract ABI
+// Contract ABI - Updated to match the actual deployed contract functions
 const contractABI = [
   {
     "inputs": [],
-    "name": "rustString",
+    "name": "getRustString",
     "outputs": [{"type": "string"}],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "rustUint256",
+    "name": "getRustUint256",
     "outputs": [{"type": "uint256"}],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "rustInt256",
+    "name": "getRustInt256",
     "outputs": [{"type": "int256"}],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "rustAddress",
+    "name": "getRustAddress",
     "outputs": [{"type": "address"}],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "rustBytes",
+    "name": "getRustBytes",
     "outputs": [{"type": "bytes"}],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "rustBytes32",
+    "name": "getRustBytes32",
     "outputs": [{"type": "bytes32"}],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "rustBool",
+    "name": "getRustBool",
     "outputs": [{"type": "bool"}],
     "stateMutability": "view",
     "type": "function"
@@ -62,8 +62,8 @@ const contractABI = [
 // =====================================================
 // IMPORTANT: Update these values after deployment
 // =====================================================
-// Contract address - Deployed Rust contract address
-const FLUENT_CONTRACT_ADDRESS = "0x87b99c706e17211f313e21f1ed98782e19e91fb2"; // Updated to match deployed Rust contract
+// Contract address - Updated to use the Solidity contract instead of Rust
+const FLUENT_CONTRACT_ADDRESS = "0xAFc63F12b732701526f48E8256Ad35c888336E54"; // Updated to use Solidity contract that wraps Rust
 
 // Network configuration
 const FLUENT_NETWORK = {
@@ -289,7 +289,7 @@ function App() {
       // Verify the contract by checking if it exists
       try {
         // Try to call a view function like rustString
-        await contractInstance.rustString();
+        await contractInstance.getRustString();
         
         // Contract exists, set it up
         setContract(contractInstance);
@@ -377,15 +377,15 @@ function App() {
         </section>
         
         {/* Math functions and visualization sections */}
-        {connectionStatus === 'connected' && contract ? (
+        {/* Always show functions as requested by Fluent team */}
+        <RustTypesDemo
+          contract={contract}
+          isConnected={connectionStatus === 'connected'}
+          updateCalculationHistory={updateCalculationHistory}
+        />
+        
+        {connectionStatus === 'connected' && contract && (
           <>
-            <MathFunctions
-              contract={contract}
-              isConnected={true}
-              scaleFactor={SCALE_FACTOR}
-              updateCalculationHistory={updateCalculationHistory}
-            />
-            
             <GraphVisualization
               contract={contract}
               isConnected={true}
@@ -411,16 +411,18 @@ function App() {
               )}
             </div>
           </>
-        ) : (
+        )}
+        
+        {connectionStatus !== 'connected' && (
           <div className="loading-container">
             {isLoading ? (
               <>
                 <div className="loading-spinner large"></div>
-                <p>Initializing math functions...</p>
+                <p>Initializing connection to Fluent network...</p>
               </>
             ) : (
               <div className="connection-error">
-                {connectionStatus === 'disconnected' && errorMessage && errorMessage.includes('Contract verification failed') ? (
+                {errorMessage && errorMessage.includes('Contract verification failed') ? (
                   <>
                     <h3>Contract Interaction Issue</h3>
                     <p>{errorMessage}</p>
