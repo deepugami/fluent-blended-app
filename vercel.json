@@ -1,9 +1,5 @@
 {
-  "buildCommand": null,
   "outputDirectory": "frontend",
-  "installCommand": null,
-  "framework": null,
-  "functions": {},
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
