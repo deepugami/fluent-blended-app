@@ -1,10 +1,11 @@
-# 🎉 Fluent Blended Math Challenge - COMPLETED! 
+# Fluent Blended Math Challenge
 
-> **Demonstrating seamless integration between Solidity and Rust mathematical libraries on Fluent Network**
+A mathematical calculation application demonstrating the integration between Solidity and Rust smart contracts on Fluent Network.
 
-## 🚀 Quick Start
+## Quick Start
 
-**Frontend is ready!** Just run:
+To run the frontend locally:
+
 ```bash
 # Windows
 launch-frontend.bat
@@ -16,72 +17,65 @@ launch-frontend.bat
 cd prb-math-blended/frontend && python -m http.server 8000
 ```
 
-Then open: http://localhost:8000
+Open http://localhost:8000 in your browser.
 
----
+## Deployed Contracts
 
-## ✅ Deployed Contracts
-
-### 🦀 Rust Contract (libm Mathematical Functions)
+### Rust Contract (libm Mathematical Functions)
 - **Address**: `0x87b99c706e17211f313e21f1ed98782e19e91fb2`
 - **Explorer**: [View on Blockscout](https://blockscout.dev.gblend.xyz/address/0x87b99c706e17211f313e21f1ed98782e19e91fb2)
 
-### 💎 Solidity Contract (PRB-Math Style + Blended Execution)
+### Solidity Contract (PRB-Math Style + Blended Execution)
 - **Address**: `0xafc63f12b732701526f48e8256ad35c888336e54`
 - **Explorer**: [View on Blockscout](https://blockscout.dev.gblend.xyz/address/0xafc63f12b732701526f48e8256ad35c888336e54)
 
----
+## Network Configuration
 
-## 🌐 Network: Fluent DevNet
-- **RPC URL**: https://rpc.dev.gblend.xyz/
-- **Chain ID**: 20993
-- **Block Explorer**: https://blockscout.dev.gblend.xyz/
+**Fluent DevNet**
+- RPC URL: https://rpc.dev.gblend.xyz/
+- Chain ID: 20993
+- Block Explorer: https://blockscout.dev.gblend.xyz/
 
----
+## What This Project Does
 
-## 🎯 What This Challenge Demonstrates
+This application compares mathematical implementations between Solidity and Rust:
 
-### ✨ Blended Execution Features
-- **Atomic Composability**: Solidity calling Rust functions in single transactions
-- **Performance Comparison**: Real-time benchmarking between implementations
-- **Precision Analysis**: Mathematical accuracy comparisons
-- **Cross-Language Integration**: Seamless interoperability
+### Core Features
+- **Cross-language contract calls**: Solidity contracts calling Rust functions within single transactions
+- **Performance benchmarking**: Real-time comparison of execution times
+- **Accuracy analysis**: Precision comparisons between different mathematical approaches
+- **Interactive interface**: Web-based calculator for testing functions
 
-### 🧮 Mathematical Functions
-- **√x (Square Root)**: Babylonian method vs libm::sqrt
-- **e^x (Exponential)**: Taylor series vs libm::exp  
-- **ln(x) (Natural Log)**: Binary search vs libm::log
-- **log₂(x) (Base-2 Log)**: Bit manipulation vs libm::log2
-- **log₁₀(x) (Base-10 Log)**: Change of base vs libm::log10
+### Mathematical Functions Implemented
+- **Square Root (√x)**: Babylonian method vs libm::sqrt
+- **Exponential (e^x)**: Taylor series vs libm::exp  
+- **Natural Logarithm (ln(x))**: Binary search vs libm::log
+- **Base-2 Logarithm (log₂(x))**: Bit manipulation vs libm::log2
+- **Base-10 Logarithm (log₁₀(x))**: Change of base vs libm::log10
 
----
+## Frontend Application
 
-## 🎨 Frontend Features
-
-### Interactive Calculator
-- Side-by-side comparison of Solidity vs Rust implementations
-- Real-time performance measurements
+### Calculator Interface
+- Side-by-side comparison of Solidity vs Rust results
+- Performance timing measurements
 - Accuracy difference calculations
 - Input validation and error handling
 
-### Visual Demonstrations  
-- Performance charts comparing execution times
-- Function plots showing mathematical accuracy
-- Comprehensive test suite with automated testing
+### Visualizations
+- Performance charts showing execution time comparisons
+- Function accuracy plots
+- Automated test suite with comprehensive coverage
 - Live demonstrations with various input ranges
 
-### Educational Content
-- Challenge explanation and objectives
-- Technology descriptions (PRB-Math, libm, Fluent SDK)
-- Resource links and documentation
-- Benefits of blended execution
+### Technical Information
+- Implementation details for both contract languages
+- Documentation links and external resources
+- Educational content about blended execution benefits
 
----
-
-## 🛠️ Technical Architecture
+## Technical Architecture
 
 ```
-Frontend (JavaScript + Web3)
+Web Frontend (JavaScript + Web3)
     ↓
 Solidity Contract (Fixed-point arithmetic)
     ↓ (Cross-language call)
@@ -90,34 +84,30 @@ Rust Contract (libm floating-point)
 Fluent Network (Blended Execution)
 ```
 
-### Key Technologies
+### Technologies Used
 - **Solidity**: PRB-Math style fixed-point arithmetic (18 decimals)
 - **Rust**: libm library for high-precision floating-point operations
 - **Fluent SDK**: WASM compilation and blended execution framework
-- **Frontend**: Modern Web3 interface with Chart.js visualizations
+- **Frontend**: JavaScript with Web3 integration and Chart.js visualizations
 
----
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 blended-app/
 ├── prb-math-blended/
 │   ├── rust/                 # Rust contract (libm functions)
-│   ├── frontend/             # Complete web application
-│   └── deploy.js             # Deployment automation
+│   ├── frontend/             # Web application
+│   └── deploy.js             # Deployment scripts
 ├── solidity/                 # Solidity contract source
 ├── deployment-result.json    # Contract addresses
-├── DEPLOYMENT_COMPLETE.md    # Detailed guide
+├── DEPLOYMENT_COMPLETE.md    # Deployment documentation
 ├── verify-deployment.js      # Contract verification
 └── launch-frontend.*         # Quick start scripts
 ```
 
----
+## Testing
 
-## 🧪 Testing
-
-### Verification Scripts
+### Contract Verification
 ```bash
 # Test contract connectivity
 node verify-deployment.js
@@ -129,34 +119,29 @@ node test_contract_interaction.js
 node check_contracts.js
 ```
 
-### Frontend Testing
-1. ✅ Network connectivity to Fluent DevNet
-2. ✅ Contract address verification
-3. ✅ Mathematical function calculations
-4. ✅ Performance benchmarking
-5. ✅ Visual demonstrations
+### Frontend Validation
+The application includes tests for:
+1. Network connectivity to Fluent DevNet
+2. Contract address verification
+3. Mathematical function calculations
+4. Performance benchmarking
+5. Visual demonstrations
 
----
+## Resources
 
-## 🔗 Resources
+- [Fluent Blended App Guide](https://docs.fluent.xyz/developer-guides/building-a-blended-app/)
+- [PRB-Math Library](https://github.com/PaulRBerg/prb-math)
+- [Rust libm Crate](https://crates.io/crates/libm)
+- [Desmos Calculator](https://www.desmos.com/calculator/5p8c3q2is2)
+- [Fluent Discord](https://discord.gg/fluent)
 
-- 📖 [Fluent Blended App Guide](https://docs.fluent.xyz/developer-guides/building-a-blended-app/)
-- 🔢 [PRB-Math Library](https://github.com/PaulRBerg/prb-math)
-- 🦀 [Rust libm Crate](https://crates.io/crates/libm)
-- 📊 [Desmos Calculator](https://www.desmos.com/calculator/5p8c3q2is2)
-- 💬 [Fluent Discord](https://discord.gg/fluent)
+## Implementation Details
 
----
+This project demonstrates practical integration between Solidity and Rust smart contracts. The application showcases cross-language contract interactions, performance comparisons, and mathematical precision analysis through a professional web interface.
 
-## 🎊 Success!
-
-**Your Fluent Blended Math Challenge is now fully deployed and operational!**
-
-The application successfully demonstrates:
-- ✅ Cross-language smart contract integration
-- ✅ Real-time performance comparison
-- ✅ Mathematical precision analysis  
-- ✅ Professional frontend interface
-- ✅ Educational value and documentation
-
-**Ready to showcase the power of Fluent's blended execution!** 🚀
+The system successfully implements:
+- Cross-language smart contract integration
+- Real-time performance comparison
+- Mathematical precision analysis  
+- Professional frontend interface
+- Comprehensive documentation
