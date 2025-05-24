@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluent Blended Math Challenge - PRB-Math & libm Integration</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🔀 Fluent Blended Execution Challenge</h1>
+            <h2>PRB-Math (Solidity) ⚡ libm (Rust) Integration</h2>
+            <p>Demonstrating seamless integration between Solidity and Rust mathematical libraries on Fluent Network</p>
+        </header>
+
+        <div class="connection-status" id="connectionStatus">
+            <div class="status-indicator" id="statusIndicator"></div>
+            <span id="statusText">Connecting to Fluent Network...</span>
+        </div>
+
+        <div class="main-content">
+            <!-- Contract Information -->
+            <div class="card">
+                <h3>📋 Contract Information</h3>
+                <div class="contract-info">
+                    <div class="info-item">
+                        <label>Rust Contract (libm):</label>
+                        <span id="rustContractAddress">Loading...</span>
+                        <a href="#" id="rustExplorerLink" target="_blank" class="explorer-link">🔗</a>
+                    </div>
+                    <div class="info-item">
+                        <label>Solidity Contract (PRB-Math style):</label>
+                        <span id="solidityContractAddress">Loading...</span>
+                        <a href="#" id="solidityExplorerLink" target="_blank" class="explorer-link">🔗</a>
+                    </div>
+                    <div class="info-item">
+                        <label>Network:</label>
+                        <span>Fluent DevNet (Chain ID: 20993)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Function Calculator -->
+            <div class="card">
+                <h3>🧮 Mathematical Function Calculator</h3>
+                <div class="calculator">
+                    <div class="input-section">
+                        <label for="mathFunction">Select Function:</label>
+                        <select id="mathFunction">
+                            <option value="sqrt">Square Root (√x)</option>
+                            <option value="exp">Exponential (e^x)</option>
+                            <option value="ln">Natural Logarithm (ln(x))</option>
+                            <option value="log2">Base-2 Logarithm (log₂(x))</option>
+                            <option value="log10">Base-10 Logarithm (log₁₀(x))</option>
+                        </select>
+                        
+                        <label for="inputValue">Input Value:</label>
+                        <input type="number" id="inputValue" step="0.000000000000000001" placeholder="Enter a number">
+                        
+                        <button id="calculateBtn" onclick="calculateFunction()">Calculate Both Implementations</button>
+                    </div>
+
+                    <div class="results-section">
+                        <div class="result-card solidity-result">
+                            <h4>🔷 Solidity Result (PRB-Math Style)</h4>
+                            <div class="result-value" id="solidityResult">-</div>
+                            <div class="result-time" id="solidityTime">-</div>
+                        </div>
+
+                        <div class="result-card rust-result">
+                            <h4>🦀 Rust Result (libm)</h4>
+                            <div class="result-value" id="rustResult">-</div>
+                            <div class="result-time" id="rustTime">-</div>
+                        </div>
+
+                        <div class="comparison-result">
+                            <h4>⚖️ Comparison</h4>
+                            <div class="comparison-details">
+                                <div>Difference: <span id="difference">-</span></div>
+                                <div>Relative Error: <span id="relativeError">-</span></div>
+                                <div>Accuracy: <span id="accuracy">-</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comprehensive Test -->
+            <div class="card">
+                <h3>🔬 Comprehensive Test Suite</h3>
+                <div class="test-suite">
+                    <button id="runTestSuite" onclick="runComprehensiveTest()">Run All Functions Test</button>
+                    <div class="test-results" id="testResults">
+                        <p>Click "Run All Functions Test" to compare all mathematical functions</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Chart -->
+            <div class="card">
+                <h3>📊 Performance Comparison</h3>
+                <div class="chart-container">
+                    <canvas id="performanceChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Function Demonstrations -->
+            <div class="card">
+                <h3>🎯 Live Function Demonstrations</h3>
+                <div class="demonstrations">
+                    <div class="demo-item">
+                        <h4>Square Root Comparison</h4>
+                        <div class="demo-visual" id="sqrtDemo">
+                            <canvas id="sqrtChart" width="300" height="150"></canvas>
+                        </div>
+                        <button onclick="demoSqrt()">Demo √x for x ∈ [0, 100]</button>
+                    </div>
+
+                    <div class="demo-item">
+                        <h4>Exponential Function Comparison</h4>
+                        <div class="demo-visual" id="expDemo">
+                            <canvas id="expChart" width="300" height="150"></canvas>
+                        </div>
+                        <button onclick="demoExp()">Demo e^x for x ∈ [-5, 5]</button>
+                    </div>
+
+                    <div class="demo-item">
+                        <h4>Logarithm Function Comparison</h4>
+                        <div class="demo-visual" id="lnDemo">
+                            <canvas id="lnChart" width="300" height="150"></canvas>
+                        </div>
+                        <button onclick="demoLn()">Demo ln(x) for x ∈ [0.1, 100]</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About the Challenge -->
+            <div class="card">
+                <h3>ℹ️ About This Challenge</h3>
+                <div class="about-section">
+                    <h4>🎯 Challenge Objective</h4>
+                    <p>This challenge demonstrates <strong>Fluent's Blended Execution</strong> by integrating:</p>
+                    <ul>
+                        <li><strong>Solidity Contract:</strong> Traditional fixed-point arithmetic (PRB-Math style)</li>
+                        <li><strong>Rust Contract:</strong> High-precision floating-point operations using libm</li>
+                        <li><strong>Seamless Integration:</strong> Both contracts can call each other atomically</li>
+                    </ul>
+
+                    <h4>🔧 Technologies Used</h4>
+                    <div class="tech-grid">
+                        <div class="tech-item">
+                            <strong>Solidity</strong>
+                            <span>PRB-Math style fixed-point arithmetic</span>
+                        </div>
+                        <div class="tech-item">
+                            <strong>Rust</strong>
+                            <span>libm library for floating-point math</span>
+                        </div>
+                        <div class="tech-item">
+                            <strong>Fluent SDK</strong>
+                            <span>WASM deployment and blended execution</span>
+                        </div>
+                        <div class="tech-item">
+                            <strong>Frontend</strong>
+                            <span>Real-time comparison and visualization</span>
+                        </div>
+                    </div>
+
+                    <h4>📚 Resources</h4>
+                    <div class="resource-links">
+                        <a href="https://docs.fluent.xyz/developer-guides/building-a-blended-app/" target="_blank">📖 Blended App Guide</a>
+                        <a href="https://github.com/PaulRBerg/prb-math" target="_blank">🔢 PRB-Math Library</a>
+                        <a href="https://crates.io/crates/libm" target="_blank">🦀 Rust libm Crate</a>
+                        <a href="https://www.desmos.com/calculator/5p8c3q2is2" target="_blank">📊 Desmos Calculator</a>
+                    </div>
+
+                    <div class="challenge-benefits">
+                        <h4>✨ Benefits of Blended Execution</h4>
+                        <ul>
+                            <li><strong>Best of Both Worlds:</strong> Combine Solidity's ecosystem with Rust's performance</li>
+                            <li><strong>Atomic Composability:</strong> Cross-language function calls in single transactions</li>
+                            <li><strong>Developer Choice:</strong> Use the right tool for each specific task</li>
+                            <li><strong>Performance Optimization:</strong> Leverage high-performance libraries like libm</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Calculating...</div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html> 
