@@ -52,51 +52,84 @@ let performanceData = {
     log10: { solidity: [], rust: [] }
 };
 
-// Notification system
+// Enhanced notification system with modern animations
 function showNotification(message, type = 'success') {
     const container = document.getElementById('notificationContainer');
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
-    notification.textContent = message;
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 1.2em;">${type === 'success' ? '✓' : '⚠️'}</span>
+            <span>${message}</span>
+        </div>
+    `;
     
     container.appendChild(notification);
     
-    // Auto remove after 5 seconds
+    // Enhanced animation
+    requestAnimationFrame(() => {
+        notification.style.transform = 'translateX(0)';
+        notification.style.opacity = '1';
+    });
+    
+    // Auto remove with fade out animation
     setTimeout(() => {
-        notification.remove();
-    }, 5000);
+        notification.style.transform = 'translateX(100%)';
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 300);
+    }, 4000);
 }
 
-// Copy address function
+// Copy address function with enhanced feedback
 function copyAddress(contractType) {
     const address = contractType === 'rust' ? RUST_CONTRACT_ADDRESS : SOLIDITY_CONTRACT_ADDRESS;
+    const button = event.target;
+    
+    // Animate button
+    button.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+        button.style.transform = 'scale(1)';
+    }, 150);
     
     navigator.clipboard.writeText(address).then(() => {
         showNotification(`${contractType === 'rust' ? 'Rust' : 'Solidity'} contract address copied!`, 'success');
+        
+        // Temporarily change button text
+        const originalText = button.textContent;
+        button.textContent = '✓';
+        button.style.color = '#22c55e';
+        
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.color = '';
+        }, 1000);
     }).catch(err => {
         console.error('Failed to copy address:', err);
         showNotification('Failed to copy address', 'error');
     });
 }
 
-// Initialize the application
+// Initialize the application with improved loading states
 async function init() {
     console.log('Initializing Fluent Blended Math Challenge...');
+    
+    // Add initial loading state
+    updateConnectionStatus('loading');
     
     try {
         // Setup provider
         provider = new ethers.providers.JsonRpcProvider(FLUENT_NETWORK.rpcUrl);
         
-        // Test connection
-        await testConnection();
+        // Test connection with retry logic
+        await testConnectionWithRetry();
         
         // Initialize contract (if address is available)
         if (SOLIDITY_CONTRACT_ADDRESS !== "0xTBD") {
             contract = new ethers.Contract(SOLIDITY_CONTRACT_ADDRESS, SOLIDITY_ABI, provider);
         }
         
-        // Update UI
-        updateConnectionStatus(true);
+        // Update UI with smooth transitions
+        await animateConnectionSuccess();
         updateContractInfo();
         
         console.log('Application initialized successfully');
@@ -105,44 +138,96 @@ async function init() {
     } catch (error) {
         console.error('Failed to initialize application:', error);
         updateConnectionStatus(false, error.message);
-        showNotification('Failed to connect to network', 'error');
+        showNotification('Failed to connect to network. Retrying...', 'error');
+        
+        // Retry connection after 3 seconds
+        setTimeout(init, 3000);
     }
 }
 
-// Test network connection
-async function testConnection() {
-    try {
-        const blockNumber = await provider.getBlockNumber();
-        console.log(`Connected to Fluent DevNet, current block: ${blockNumber}`);
-        isConnected = true;
-        return true;
-    } catch (error) {
-        console.error('Network connection failed:', error);
-        isConnected = false;
-        throw error;
+// Enhanced connection testing with retry logic
+async function testConnectionWithRetry(maxRetries = 3) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const blockNumber = await provider.getBlockNumber();
+            console.log(`Connected to Fluent DevNet, current block: ${blockNumber}`);
+            isConnected = true;
+            return true;
+        } catch (error) {
+            console.warn(`Connection attempt ${attempt} failed:`, error);
+            if (attempt === maxRetries) {
+                isConnected = false;
+                throw error;
+            }
+            // Wait before retry
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
     }
 }
 
-// Update connection status in UI
-function updateConnectionStatus(connected, errorMessage = '') {
+// Animate connection success
+async function animateConnectionSuccess() {
+    const statusDot = document.querySelector('.status-dot');
     const statusText = document.getElementById('statusText');
     
-    if (connected) {
-        statusText.textContent = `Connected to ${FLUENT_NETWORK.name}`;
-    } else {
-        statusText.textContent = `Connection failed: ${errorMessage}`;
+    // Animate status dot
+    statusDot.style.background = '#22c55e';
+    statusDot.style.boxShadow = '0 0 16px rgba(34, 197, 94, 0.8)';
+    
+    // Animate text with typewriter effect
+    const targetText = `Connected to ${FLUENT_NETWORK.name}`;
+    statusText.textContent = '';
+    
+    for (let i = 0; i < targetText.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 30));
+        statusText.textContent += targetText[i];
     }
 }
 
-// Update contract information in UI
+// Update connection status with enhanced states
+function updateConnectionStatus(status, errorMessage = '') {
+    const statusText = document.getElementById('statusText');
+    const statusDot = document.querySelector('.status-dot');
+    const pulseRing = document.querySelector('.pulse-ring');
+    
+    switch (status) {
+        case 'loading':
+            statusText.textContent = 'Connecting to Fluent Network...';
+            statusDot.style.background = '#f59e0b';
+            statusDot.style.boxShadow = '0 0 8px rgba(245, 158, 11, 0.5)';
+            pulseRing.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+            break;
+        case true:
+            // Handled by animateConnectionSuccess()
+            break;
+        case false:
+            statusText.textContent = `Connection failed: ${errorMessage}`;
+            statusDot.style.background = '#ef4444';
+            statusDot.style.boxShadow = '0 0 8px rgba(239, 68, 68, 0.5)';
+            pulseRing.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+            break;
+    }
+}
+
+// Update contract information with fade-in animation
 function updateContractInfo() {
     const rustAddress = document.getElementById('rustContractAddress');
     const solidityAddress = document.getElementById('solidityContractAddress');
     const rustLink = document.getElementById('rustExplorerLink');
     const solidityLink = document.getElementById('solidityExplorerLink');
     
-    rustAddress.textContent = RUST_CONTRACT_ADDRESS;
-    solidityAddress.textContent = SOLIDITY_CONTRACT_ADDRESS;
+    // Animate address reveal
+    [rustAddress, solidityAddress].forEach((element, index) => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(10px)';
+        
+        setTimeout(() => {
+            element.textContent = index === 0 ? RUST_CONTRACT_ADDRESS : SOLIDITY_CONTRACT_ADDRESS;
+            element.style.opacity = '1';
+            element.style.transform = 'translateY(0)';
+            element.style.transition = 'all 0.3s ease-out';
+        }, index * 200);
+    });
     
     rustLink.href = `${FLUENT_NETWORK.blockExplorer}/address/${RUST_CONTRACT_ADDRESS}`;
     solidityLink.href = `${FLUENT_NETWORK.blockExplorer}/address/${SOLIDITY_CONTRACT_ADDRESS}`;
@@ -158,57 +243,118 @@ function fromFixedPoint(value) {
     return parseFloat(ethers.utils.formatUnits(value, 18));
 }
 
-// Show loading overlay
+// Enhanced loading overlay with better animations
 function showLoading() {
-    document.getElementById('loadingOverlay').classList.add('active');
-    
-    // Add button loading state
+    const overlay = document.getElementById('loadingOverlay');
     const button = document.getElementById('calculateBtn');
     const buttonText = button.querySelector('.button-text');
     const buttonLoader = button.querySelector('.button-loader');
     
+    // Show overlay with fade-in
+    overlay.classList.add('active');
+    
+    // Animate button state
+    button.style.transform = 'scale(0.98)';
     buttonText.style.opacity = '0';
     buttonLoader.classList.remove('hidden');
     button.disabled = true;
+    
+    // Add pulse animation to all result cards
+    document.querySelectorAll('.result-card, .comparison-card').forEach(card => {
+        card.style.opacity = '0.6';
+        card.style.transform = 'scale(0.98)';
+    });
 }
 
-// Hide loading overlay
+// Enhanced loading hide with smooth transitions
 function hideLoading() {
-    document.getElementById('loadingOverlay').classList.remove('active');
-    
-    // Remove button loading state
+    const overlay = document.getElementById('loadingOverlay');
     const button = document.getElementById('calculateBtn');
     const buttonText = button.querySelector('.button-text');
     const buttonLoader = button.querySelector('.button-loader');
     
-    buttonText.style.opacity = '1';
-    buttonLoader.classList.add('hidden');
-    button.disabled = false;
+    // Hide overlay with fade-out
+    overlay.classList.remove('active');
+    
+    // Restore button state with animation
+    setTimeout(() => {
+        button.style.transform = 'scale(1)';
+        buttonText.style.opacity = '1';
+        buttonLoader.classList.add('hidden');
+        button.disabled = false;
+        
+        // Restore result cards with staggered animation
+        document.querySelectorAll('.result-card, .comparison-card').forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'scale(1)';
+                card.style.transition = 'all 0.3s ease-out';
+            }, index * 100);
+        });
+    }, 200);
 }
 
-// Calculate mathematical function (main calculator function)
+// Enhanced calculation function with better error handling
 async function calculateFunction() {
     const functionSelect = document.getElementById('mathFunction');
     const inputValue = document.getElementById('inputValue');
     const selectedFunction = functionSelect.value;
     const inputNum = parseFloat(inputValue.value);
     
+    // Enhanced input validation
     if (isNaN(inputNum)) {
         showNotification('Please enter a valid number', 'error');
+        inputValue.style.borderColor = '#ef4444';
+        inputValue.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+        
+        setTimeout(() => {
+            inputValue.style.borderColor = '';
+            inputValue.style.boxShadow = '';
+        }, 2000);
         return;
     }
     
-    showLoading();
+    // Function-specific validation
+    if (selectedFunction === 'sqrt' && inputNum < 0) {
+        showNotification('Square root requires a non-negative number', 'error');
+        return;
+    }
+    
+    if ((selectedFunction === 'ln' || selectedFunction === 'log2' || selectedFunction === 'log10') && inputNum <= 0) {
+        showNotification('Logarithmic functions require a positive number', 'error');
+        return;
+    }
     
     try {
-        if (!contract) {
-            // Mock calculations for demonstration when contract is not available
-            await performMockCalculation(selectedFunction, inputNum);
+        showLoading();
+        
+        let solidityResult, rustResult, solidityTime, rustTime;
+        
+        if (contract && isConnected) {
+            const result = await performContractCalculation(selectedFunction, inputNum);
+            solidityResult = result.solidityResult;
+            rustResult = result.rustResult;
+            solidityTime = result.solidityTime;
+            rustTime = result.rustTime;
         } else {
-            await performContractCalculation(selectedFunction, inputNum);
+            const result = await performMockCalculation(selectedFunction, inputNum);
+            solidityResult = result.solidityResult;
+            rustResult = result.rustResult;
+            solidityTime = result.solidityTime;
+            rustTime = result.rustTime;
         }
         
-        showNotification(`Calculated ${selectedFunction}(${inputNum}) successfully!`, 'success');
+        // Update results with enhanced animations
+        await updateCalculationResults(solidityResult, rustResult, solidityTime, rustTime);
+        
+        // Store performance data
+        performanceData[selectedFunction].solidity.push(solidityTime);
+        performanceData[selectedFunction].rust.push(rustTime);
+        
+        // Update chart
+        updatePerformanceChart();
+        
+        showNotification(`${selectedFunction.toUpperCase()} calculation completed successfully!`, 'success');
         
     } catch (error) {
         console.error('Calculation failed:', error);

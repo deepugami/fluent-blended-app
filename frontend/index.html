@@ -4,14 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fluent Blended Math Challenge</title>
+    <meta name="description" content="Seamless integration between Solidity and Rust mathematical libraries on Fluent Network">
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body>
     <!-- Animated Background -->
-    <div class="background-animation">
+    <div class="background-animation" aria-hidden="true">
         <div class="floating-shape shape-1"></div>
         <div class="floating-shape shape-2"></div>
         <div class="floating-shape shape-3"></div>
@@ -22,7 +24,7 @@
     <!-- Main Container -->
     <div class="container">
         <!-- Hero Header -->
-        <header class="hero-header" data-aos="fade-down">
+        <header class="hero-header">
             <div class="hero-content">
                 <h1 class="hero-title">
                     <span class="text-glow">Fluent Blended Math</span>
@@ -31,74 +33,70 @@
                     Seamless integration between <strong>Solidity</strong> and <strong>Rust</strong> mathematical libraries
                 </p>
                 <div class="hero-badges">
-                    <span class="badge badge-solidity">PRB-Math</span>
-                    <span class="badge badge-rust">libm</span>
-                    <span class="badge badge-fluent">Fluent Network</span>
+                    <span class="badge">PRB-Math</span>
+                    <span class="badge">libm</span>
+                    <span class="badge">Fluent Network</span>
                 </div>
             </div>
         </header>
 
         <!-- Connection Status -->
-        <div class="connection-panel glass-panel" data-aos="fade-up">
-            <div class="status-indicator" id="statusIndicator">
-                <div class="pulse-ring"></div>
-                <div class="status-dot"></div>
+        <section class="connection-panel glass-panel" aria-label="Network connection status">
+            <div class="status-indicator" role="status" aria-live="polite">
+                <div class="pulse-ring" aria-hidden="true"></div>
+                <div class="status-dot" aria-hidden="true"></div>
             </div>
             <div class="connection-info">
                 <h3 id="statusText">Connecting to Fluent Network...</h3>
                 <p class="connection-details">Chain ID: 20993 | DevNet</p>
             </div>
-        </div>
+        </section>
 
         <!-- Contract Information -->
-        <section class="contracts-section" data-aos="fade-up" data-aos-delay="100">
-            <h2 class="section-title">
-                Smart Contracts
-            </h2>
+        <section class="contracts-section" data-aos="fade-up">
+            <h2 class="section-title">Smart Contracts</h2>
             <div class="contracts-grid">
-                <div class="contract-card glass-panel" data-contract="rust">
-                    <div class="contract-header">
-                        <div class="contract-icon">🦀</div>
+                <article class="contract-card glass-panel" data-contract="rust">
+                    <header class="contract-header">
+                        <div class="contract-icon" role="img" aria-label="Rust logo">🦀</div>
                         <div class="contract-info">
                             <h3>Rust Contract</h3>
                             <p>High-precision libm functions</p>
                         </div>
-                    </div>
+                    </header>
                     <div class="contract-address">
                         <span id="rustContractAddress">Loading...</span>
-                        <button class="copy-btn" onclick="copyAddress('rust')">📋</button>
-                        <a href="#" id="rustExplorerLink" target="_blank" class="explorer-btn">🔗</a>
+                        <button class="copy-btn" onclick="copyAddress('rust')" aria-label="Copy Rust contract address">📋</button>
+                        <a href="#" id="rustExplorerLink" target="_blank" class="explorer-btn" aria-label="View Rust contract in explorer">🔗</a>
                     </div>
-                </div>
+                </article>
 
-                <div class="contract-card glass-panel" data-contract="solidity">
-                    <div class="contract-header">
-                        <div class="contract-icon">💎</div>
+                <article class="contract-card glass-panel" data-contract="solidity">
+                    <header class="contract-header">
+                        <div class="contract-icon" role="img" aria-label="Solidity logo">💎</div>
                         <div class="contract-info">
                             <h3>Solidity Contract</h3>
                             <p>PRB-Math style arithmetic</p>
                         </div>
-                    </div>
+                    </header>
                     <div class="contract-address">
                         <span id="solidityContractAddress">Loading...</span>
-                        <button class="copy-btn" onclick="copyAddress('solidity')">📋</button>
-                        <a href="#" id="solidityExplorerLink" target="_blank" class="explorer-btn">🔗</a>
+                        <button class="copy-btn" onclick="copyAddress('solidity')" aria-label="Copy Solidity contract address">📋</button>
+                        <a href="#" id="solidityExplorerLink" target="_blank" class="explorer-btn" aria-label="View Solidity contract in explorer">🔗</a>
                     </div>
-                </div>
+                </article>
             </div>
         </section>
 
         <!-- Mathematical Calculator -->
-        <section class="calculator-section" data-aos="fade-up" data-aos-delay="200">
-            <h2 class="section-title">
-                Mathematical Calculator
-            </h2>
+        <section class="calculator-section" data-aos="fade-up" data-aos-delay="100">
+            <h2 class="section-title">Mathematical Calculator</h2>
             
             <div class="calculator-panel glass-panel">
-                <div class="calculator-controls">
+                <form class="calculator-controls" onsubmit="event.preventDefault(); calculateFunction();">
                     <div class="function-selector">
                         <label for="mathFunction">Function</label>
-                        <select id="mathFunction" class="modern-select">
+                        <select id="mathFunction" class="modern-select" aria-describedby="function-help">
                             <option value="sqrt">Square Root (√x)</option>
                             <option value="exp">Exponential (e^x)</option>
                             <option value="ln">Natural Logarithm (ln(x))</option>
@@ -110,77 +108,76 @@
                     <div class="input-group">
                         <label for="inputValue">Input Value</label>
                         <input type="number" id="inputValue" class="modern-input" 
-                               step="0.000000000000000001" placeholder="Enter a number">
+                               step="0.000000000000000001" placeholder="Enter a number" 
+                               aria-describedby="input-help" required>
                     </div>
                     
-                    <button id="calculateBtn" class="calculate-button" onclick="calculateFunction()">
+                    <button type="submit" id="calculateBtn" class="calculate-button">
                         <span class="button-text">Calculate</span>
                         <div class="button-loader hidden">
                             <div class="loader-ring"></div>
                         </div>
                     </button>
-                </div>
+                </form>
 
-                <div class="results-grid">
-                    <div class="result-card solidity-result">
-                        <div class="result-header">
-                            <span class="result-icon">🔷</span>
+                <div class="results-grid" role="region" aria-label="Calculation results">
+                    <article class="result-card solidity-result">
+                        <header class="result-header">
+                            <span class="result-icon" role="img" aria-label="Solidity result">🔷</span>
                             <h4>Solidity Result</h4>
-                        </div>
-                        <div class="result-value" id="solidityResult">-</div>
+                        </header>
+                        <div class="result-value" id="solidityResult" aria-live="polite">-</div>
                         <div class="result-meta">
-                            <span id="solidityTime">-</span>
+                            <span id="solidityTime" aria-label="Execution time">-</span>
                             <span class="result-label">execution time</span>
                         </div>
-                    </div>
+                    </article>
 
-                    <div class="result-card rust-result">
-                        <div class="result-header">
-                            <span class="result-icon">🦀</span>
+                    <article class="result-card rust-result">
+                        <header class="result-header">
+                            <span class="result-icon" role="img" aria-label="Rust result">🦀</span>
                             <h4>Rust Result</h4>
-                        </div>
-                        <div class="result-value" id="rustResult">-</div>
+                        </header>
+                        <div class="result-value" id="rustResult" aria-live="polite">-</div>
                         <div class="result-meta">
-                            <span id="rustTime">-</span>
+                            <span id="rustTime" aria-label="Execution time">-</span>
                             <span class="result-label">execution time</span>
                         </div>
-                    </div>
+                    </article>
 
-                    <div class="comparison-card">
-                        <div class="comparison-header">
-                            <span class="result-icon">⚖️</span>
+                    <article class="comparison-card">
+                        <header class="comparison-header">
+                            <span class="result-icon" role="img" aria-label="Comparison">⚖️</span>
                             <h4>Comparison</h4>
-                        </div>
+                        </header>
                         <div class="comparison-metrics">
                             <div class="metric">
                                 <span class="metric-label">Difference</span>
-                                <span id="difference" class="metric-value">-</span>
+                                <span id="difference" class="metric-value" aria-live="polite">-</span>
                             </div>
                             <div class="metric">
                                 <span class="metric-label">Accuracy</span>
-                                <span id="accuracy" class="metric-value">-</span>
+                                <span id="accuracy" class="metric-value" aria-live="polite">-</span>
                             </div>
                         </div>
-                    </div>
+                    </article>
                 </div>
             </div>
         </section>
 
         <!-- Performance Analytics -->
-        <section class="analytics-section" data-aos="fade-up" data-aos-delay="300">
-            <h2 class="section-title">
-                Performance Analytics
-            </h2>
+        <section class="analytics-section" data-aos="fade-up" data-aos-delay="200">
+            <h2 class="section-title">Performance Analytics</h2>
             
             <div class="analytics-grid">
-                <div class="chart-panel glass-panel">
+                <article class="chart-panel glass-panel">
                     <h3>Execution Time Comparison</h3>
                     <div class="chart-container">
-                        <canvas id="performanceChart"></canvas>
+                        <canvas id="performanceChart" aria-label="Performance comparison chart"></canvas>
                     </div>
-                </div>
+                </article>
 
-                <div class="test-panel glass-panel">
+                <article class="test-panel glass-panel">
                     <h3>Comprehensive Test Suite</h3>
                     <button id="runTestSuite" class="test-button" onclick="runComprehensiveTest()">
                         <span class="button-text">Run All Tests</span>
@@ -188,59 +185,55 @@
                             <div class="progress-bar"></div>
                         </div>
                     </button>
-                    <div class="test-results" id="testResults">
+                    <div class="test-results" id="testResults" role="log" aria-live="polite">
                         <p>Click "Run All Tests" to compare all mathematical functions</p>
                     </div>
-                </div>
+                </article>
             </div>
         </section>
 
         <!-- Function Demonstrations -->
-        <section class="demos-section" data-aos="fade-up" data-aos-delay="400">
-            <h2 class="section-title">
-                Live Demonstrations
-            </h2>
+        <section class="demos-section" data-aos="fade-up" data-aos-delay="300">
+            <h2 class="section-title">Live Demonstrations</h2>
             
             <div class="demos-grid">
-                <div class="demo-card glass-panel">
+                <article class="demo-card glass-panel">
                     <h4>Square Root Comparison</h4>
                     <div class="demo-chart">
-                        <canvas id="sqrtChart"></canvas>
+                        <canvas id="sqrtChart" aria-label="Square root function demonstration chart"></canvas>
                     </div>
                     <button class="demo-button" onclick="demoSqrt()">
                         Demo √x for x ∈ [0, 100]
                     </button>
-                </div>
+                </article>
 
-                <div class="demo-card glass-panel">
+                <article class="demo-card glass-panel">
                     <h4>Exponential Function</h4>
                     <div class="demo-chart">
-                        <canvas id="expChart"></canvas>
+                        <canvas id="expChart" aria-label="Exponential function demonstration chart"></canvas>
                     </div>
                     <button class="demo-button" onclick="demoExp()">
                         Demo e^x for x ∈ [-5, 5]
                     </button>
-                </div>
+                </article>
 
-                <div class="demo-card glass-panel">
+                <article class="demo-card glass-panel">
                     <h4>Logarithmic Functions</h4>
                     <div class="demo-chart">
-                        <canvas id="lnChart"></canvas>
+                        <canvas id="lnChart" aria-label="Logarithmic function demonstration chart"></canvas>
                     </div>
                     <button class="demo-button" onclick="demoLn()">
                         Demo ln(x) for x ∈ [0.1, 100]
                     </button>
-                </div>
+                </article>
             </div>
         </section>
 
         <!-- About Section -->
-        <section class="about-section" data-aos="fade-up" data-aos-delay="500">
-            <h2 class="section-title">
-                About This Challenge
-            </h2>
+        <section class="about-section" data-aos="fade-up" data-aos-delay="400">
+            <h2 class="section-title">About This Challenge</h2>
             
-            <div class="about-content glass-panel">
+            <article class="about-content glass-panel">
                 <div class="about-grid">
                     <div class="about-item">
                         <h4>Objective</h4>
@@ -270,27 +263,30 @@
                     
                     <div class="about-item">
                         <h4>Resources</h4>
-                        <div class="resource-links">
-                            <a href="https://docs.fluent.xyz/developer-guides/building-a-blended-app/" target="_blank" class="resource-link">
+                        <nav class="resource-links">
+                            <a href="https://docs.fluent.xyz/developer-guides/building-a-blended-app/" 
+                               target="_blank" rel="noopener noreferrer" class="resource-link">
                                 Blended App Guide
                             </a>
-                            <a href="https://github.com/PaulRBerg/prb-math" target="_blank" class="resource-link">
+                            <a href="https://github.com/PaulRBerg/prb-math" 
+                               target="_blank" rel="noopener noreferrer" class="resource-link">
                                 PRB-Math Library
                             </a>
-                            <a href="https://crates.io/crates/libm" target="_blank" class="resource-link">
+                            <a href="https://crates.io/crates/libm" 
+                               target="_blank" rel="noopener noreferrer" class="resource-link">
                                 Rust libm Crate
                             </a>
-                        </div>
+                        </nav>
                     </div>
                 </div>
-            </div>
+            </article>
         </section>
     </div>
 
     <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-overlay" id="loadingOverlay" role="status" aria-label="Loading">
         <div class="loading-content">
-            <div class="loading-spinner">
+            <div class="loading-spinner" aria-hidden="true">
                 <div class="spinner-ring"></div>
                 <div class="spinner-ring"></div>
                 <div class="spinner-ring"></div>
@@ -300,17 +296,67 @@
     </div>
 
     <!-- Notification System -->
-    <div class="notification-container" id="notificationContainer"></div>
+    <div class="notification-container" id="notificationContainer" role="region" aria-label="Notifications" aria-live="polite"></div>
 
     <!-- Scripts -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="js/app.js"></script>
     <script>
-        AOS.init({
-            duration: 800,
-            easing: 'ease-out-cubic',
-            once: true,
-            offset: 50
+        // Initialize AOS with optimized settings
+        document.addEventListener('DOMContentLoaded', function() {
+            AOS.init({
+                duration: 800,
+                easing: 'ease-out-cubic',
+                once: true,
+                offset: 50,
+                delay: 0,
+                anchorPlacement: 'top-bottom'
+            });
+
+            // Add intersection observer for additional animations
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('aos-animate');
+                    }
+                });
+            }, observerOptions);
+
+            // Observe elements that should animate on scroll
+            document.querySelectorAll('.glass-panel, .section-title').forEach(el => {
+                observer.observe(el);
+            });
+
+            // Add smooth hover effects for interactive elements
+            document.querySelectorAll('.glass-panel').forEach(panel => {
+                panel.addEventListener('mouseenter', () => {
+                    panel.style.transform = 'translateY(-2px)';
+                });
+                
+                panel.addEventListener('mouseleave', () => {
+                    panel.style.transform = 'translateY(0)';
+                });
+            });
+
+            // Enhanced button interactions
+            document.querySelectorAll('.calculate-button, .test-button, .demo-button').forEach(button => {
+                button.addEventListener('mousedown', () => {
+                    button.style.transform = 'translateY(1px)';
+                });
+                
+                button.addEventListener('mouseup', () => {
+                    button.style.transform = 'translateY(-1px)';
+                });
+                
+                button.addEventListener('mouseleave', () => {
+                    button.style.transform = 'translateY(0)';
+                });
+            });
         });
     </script>
 </body>
