@@ -25,9 +25,9 @@ This project showcases a hybrid approach to implementing mathematical functions 
 ```
 blended-app/
 ├── src/
-│   └── lib.rs                 # Rust mathematical functions contract
+│   └── lib.rs                 # Rust contract
 ├── solidity/
-│   └── prbMathBlended.sol     # Solidity interface contract
+│   └── prbMathBlended.sol     # Solidity contract
 ├── frontend/
 │   └── index.html             # Web interface for testing
 ├── Cargo.toml                 # Rust dependencies
