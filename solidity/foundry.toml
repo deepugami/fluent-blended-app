@@ -1,0 +1,11 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+solc = "0.8.30"
+
+[rpc_endpoints]
+fluent_testnet = "https://rpc.dev.gblend.xyz/"
+
+[etherscan]
+fluent_testnet = { key = "", url = "https://blockscout.dev.gblend.xyz/api/" }

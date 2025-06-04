@@ -1,0 +1,7 @@
+E:\KIIT\edu\blended-app\target\wasm32-unknown-unknown\release\deps\libsubtle-84a0ffb239fc9e89.rmeta: C:\Users\KIIT\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\subtle-2.6.1\src\lib.rs
+
+E:\KIIT\edu\blended-app\target\wasm32-unknown-unknown\release\deps\libsubtle-84a0ffb239fc9e89.rlib: C:\Users\KIIT\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\subtle-2.6.1\src\lib.rs
+
+E:\KIIT\edu\blended-app\target\wasm32-unknown-unknown\release\deps\subtle-84a0ffb239fc9e89.d: C:\Users\KIIT\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\subtle-2.6.1\src\lib.rs
+
+C:\Users\KIIT\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\subtle-2.6.1\src\lib.rs:
