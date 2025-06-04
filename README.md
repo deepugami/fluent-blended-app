@@ -2,18 +2,17 @@
 
 A blended application demonstrating mathematical functions implemented in Rust and interfaced through Solidity on the Fluent testnet.
 
-## 🚀 Quick Start
+## Project Overview
 
-### Deployed Contracts
+This project showcases a hybrid approach to implementing mathematical functions using Rust compiled to WebAssembly (WASM) and made accessible through a Solidity interface. The system is deployed on the Fluent testnet.
 
-- **NEW Rust Contract (WORKING)**: `0x210c583479f3cfece4080e39496000bc0d9bf568` (Fluent Testnet)
-- **OLD Rust Contract (BROKEN)**: `0x447cc72447d69cf9e0622756ff447725a8ee5fa6` (Fluent Testnet) 
+## Deployed Contracts
+
+- **Rust Contract Address**: `0x210c583479f3cfece4080e39496000bc0d9bf568` (Fluent Testnet)
 - **Network**: Fluent Testnet (Chain ID: 20993)
 - **RPC**: https://rpc.dev.gblend.xyz/
 
-> ⚠️ **IMPORTANT**: Use the NEW contract address for all applications. The old contract has function selector issues.
-
-### Mathematical Functions Available
+## Mathematical Functions Available
 
 - `sqrt(x)` - Square root
 - `exp(x)` - Exponential (e^x)
@@ -21,7 +20,7 @@ A blended application demonstrating mathematical functions implemented in Rust a
 - `log2(x)` - Base-2 logarithm
 - `log10(x)` - Base-10 logarithm
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 blended-app/
@@ -36,7 +35,7 @@ blended-app/
 └── deploy-solidity.js         # Deployment helper for Solidity
 ```
 
-## 🔧 Setup Instructions
+## Setup Instructions
 
 ### 1. Build the Rust Contract
 
@@ -50,9 +49,7 @@ gblend build rust -r
 
 ### 2. Deploy Rust Contract
 
-The Rust contract is already deployed at: `0x447cc72447d69cf9e0622756ff447725a8ee5fa6`
-
-To deploy your own:
+To deploy your own Rust contract:
 ```bash
 gblend deploy \
   --private-key YOUR_PRIVATE_KEY \
@@ -70,7 +67,7 @@ gblend deploy \
    - RPC URL: https://rpc.dev.gblend.xyz/
    - Chain ID: 20993
    - Symbol: ETH
-5. Deploy with constructor parameter: `0x447cc72447d69cf9e0622756ff447725a8ee5fa6`
+5. Deploy with constructor parameter: `0x210c583479f3cfece4080e39496000bc0d9bf568`
 
 ### 4. Use the Frontend
 
@@ -79,7 +76,7 @@ gblend deploy \
 3. Enter your deployed Solidity contract address
 4. Test the mathematical functions
 
-## 🧪 Testing
+## Testing
 
 ### Test Rust Contract Directly
 
@@ -94,11 +91,15 @@ node test-rust-contract.js
 3. Click any mathematical function button
 4. View results in real-time
 
-## 📊 Function Examples
+## Function Examples
 
-| Function | Input (2.0) | Expected Output |
-|----------|-------------|-----------------|
-| sqrt(2)  | ~1.414      | Square root     |
+| Function | Input (2.0) | Expected Result |
+|----------|-------------|----------------|
+| sqrt(2)  | ~1.414      | Square root    |
+| exp(2)   | ~7.389      | e^2            |
+| ln(2)    | ~0.693      | Natural log    |
+| log2(2)  | 1.0         | Base-2 log     |
+| log10(2) | ~0.301      | Base-10 log    |
 | exp(2)   | ~7.389      | e^2             |
 | ln(2)    | ~0.693      | Natural log     |
 | log2(2)  | 1.0         | Base-2 log      |
