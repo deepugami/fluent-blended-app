@@ -1,0 +1,20 @@
+# Rust build files
+rust/target
+target
+
+# Cache directories
+cache
+**/cache
+
+# Large files and dependencies
+node_modules
+**/node_modules
+
+# Testing files
+test-*
+*test*
+verify-fix.js
+
+# Development files
+*.md
+!README.md
