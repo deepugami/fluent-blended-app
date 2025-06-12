@@ -74,10 +74,10 @@ The contract deployment was successful, but function calls are failing. This cou
 ## 7. Benefits of libm Implementation
 
 Using `libm` provides:
-- ✅ **High precision**: Industry-standard mathematical functions
-- ✅ **Performance**: Optimized implementations  
-- ✅ **Reliability**: Well-tested library used across Rust ecosystem
-- ✅ **Accuracy**: Proper handling of edge cases and precision
+- **High precision**: Industry-standard mathematical functions
+- **Performance**: Optimized implementations  
+- **Reliability**: Well-tested library used across Rust ecosystem
+- **Accuracy**: Proper handling of edge cases and precision
 
 This is a significant improvement over the previous custom approximations that were producing incorrect results.
 
