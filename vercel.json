@@ -3,7 +3,6 @@
   "name": "fluent-blended-app",
   "framework": null,
   "public": false,
-  "functions": {},
   "builds": [
     {
       "src": "frontend/**",
