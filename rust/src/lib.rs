@@ -1,8 +1,8 @@
 #![cfg_attr(target_arch = "wasm32", no_std)]
 extern crate alloc;
 
-// Using ultra-optimized mathematical functions to prevent timeouts and errors
-mod ultra_optimized_math;
+// Using optimized mathematical functions to prevent timeouts and errors
+mod lib_2;
 
 use fluentbase_sdk::{
     basic_entrypoint,
@@ -34,50 +34,50 @@ impl<SDK: SharedAPI> RouterAPI for ROUTER<SDK> {
 
         #[function_id("echo_input(uint256)")]
     fn echo_input(&self, x: U256) -> U256 {
-        use ultra_optimized_math::OptimizedMathApproximations;
+        use lib_2::OptimizedMathApproximations;
         let math = OptimizedMathApproximations::new();
         math.echo_input(x)
     }
 
     #[function_id("double_input(uint256)")]
     fn double_input(&self, x: U256) -> U256 {
-        use ultra_optimized_math::OptimizedMathApproximations;
+        use lib_2::OptimizedMathApproximations;
         let math = OptimizedMathApproximations::new();
         math.double_input(x)
     }
 
-    // Mathematical functions with ultra-optimization
+    // Mathematical functions with optimization
     #[function_id("sqrt(uint256)")]
     fn sqrt(&self, x: U256) -> U256 {
-        use ultra_optimized_math::OptimizedMathApproximations;
+        use lib_2::OptimizedMathApproximations;
         let math = OptimizedMathApproximations::new();
         math.rust_sqrt_uint256(x)
     }
 
     #[function_id("exp(uint256)")]
     fn exp(&self, x: U256) -> U256 {
-        use ultra_optimized_math::OptimizedMathApproximations;
+        use lib_2::OptimizedMathApproximations;
         let math = OptimizedMathApproximations::new();
         math.rust_exp_uint256(x)
     }
 
     #[function_id("ln(uint256)")]
     fn ln(&self, x: U256) -> U256 {
-        use ultra_optimized_math::OptimizedMathApproximations;
+        use lib_2::OptimizedMathApproximations;
         let math = OptimizedMathApproximations::new();
         math.rust_ln_uint256(x)
     }
 
     #[function_id("log2(uint256)")]
     fn log2(&self, x: U256) -> U256 {
-        use ultra_optimized_math::OptimizedMathApproximations;
+        use lib_2::OptimizedMathApproximations;
         let math = OptimizedMathApproximations::new();
         math.rust_log2_uint256(x)
     }
 
     #[function_id("log10(uint256)")]
     fn log10(&self, x: U256) -> U256 {
-        use ultra_optimized_math::OptimizedMathApproximations;
+        use lib_2::OptimizedMathApproximations;
         let math = OptimizedMathApproximations::new();
         math.rust_log10_uint256(x)
     }

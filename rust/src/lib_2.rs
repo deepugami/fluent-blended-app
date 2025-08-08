@@ -3,7 +3,7 @@ use fluentbase_sdk::U256;
 // Scaling factor for fixed-point math operations (10^18)
 const SCALE: u128 = 1_000_000_000_000_000_000;
 
-/// Ultra-optimized mathematical approximations for Fluent rWASM
+
 /// These functions are designed to be fast and avoid timeouts
 pub struct OptimizedMathApproximations;
 
@@ -71,7 +71,7 @@ impl OptimizedMathApproximations {
         U256::from(final_result)
     }
 
-    /// Ultra-lightweight exponential approximation
+
     /// Simplified lookup table to avoid timeouts
     pub fn rust_exp_uint256(&self, x: U256) -> U256 {
         let input_u128 = x.to::<u128>();
@@ -167,7 +167,7 @@ impl OptimizedMathApproximations {
         U256::from(result)
     }
 
-    /// Ultra-lightweight log base 10 implementation
+
     /// Simplified to avoid timeouts in rWASM runtime
     pub fn rust_log10_uint256(&self, x: U256) -> U256 {
         let input_u128 = x.to::<u128>();
