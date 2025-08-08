@@ -8,11 +8,12 @@ This project showcases a hybrid approach to implementing mathematical functions 
 
 ## Deployed Contracts
 
-- **Rust Contract**: `0x5e44930a479f34fbc1c9657c68f5b7f761363769` (Fluent Testnet)
-- **Solidity Interface**: `0xB5f2c8f502C654C3F52BA8118b9f83Ff16379E96` (Fluent Testnet) 
+- **Rust Contract**: `0xB8Bf5Da7bCbCF96d7DFe057F8bC9D97037D6Da24` (Fluent Testnet)
+- **Solidity Interface**: `0x2F1fDcC76f0419Ce81e1D4B949902a776f8D8bB4` (Fluent Testnet) 
 - **Network**: Fluent Testnet (Chain ID: 20993)
 - **RPC**: https://rpc.dev.gblend.xyz/
 - **Explorer**: https://blockscout.dev.gblend.xyz/
+- **Frontend**: `frontend/index.html` - Interactive web interface for testing all functions
 
 ## Mathematical Functions Available
 

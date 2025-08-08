@@ -1,13 +1,14 @@
 #![cfg_attr(target_arch = "wasm32", no_std)]
 extern crate alloc;
 
-use libm;
+// Using ultra-optimized mathematical functions to prevent timeouts and errors
+mod ultra_optimized_math;
 
 use fluentbase_sdk::{
     basic_entrypoint,
     derive::{router, Contract},
     SharedAPI,
-    U256, I256,
+    U256,    // alloy Solidity type for uint256
 };
 
 #[derive(Contract)]
@@ -16,101 +17,75 @@ struct ROUTER<SDK> {
 }
 
 pub trait RouterAPI {
-    fn sqrt(&self, x: U256) -> I256;
-    fn exp(&self, x: I256) -> I256;
-    fn ln(&self, x: U256) -> I256;
-    fn log2(&self, x: U256) -> I256;
-    fn log10(&self, x: U256) -> I256;
+    // Test functions
+    fn echo_input(&self, x: U256) -> U256;
+    fn double_input(&self, x: U256) -> U256;
+    
+    // Mathematical functions matching the Solidity interface exactly
+    fn sqrt(&self, x: U256) -> U256;
+    fn exp(&self, x: U256) -> U256;
+    fn ln(&self, x: U256) -> U256;
+    fn log2(&self, x: U256) -> U256;
+    fn log10(&self, x: U256) -> U256;
 }
 
 #[router(mode = "solidity")]
-impl<SDK: SharedAPI> RouterAPI for ROUTER<SDK> {    #[function_id("sqrt(uint256)")]
-    fn sqrt(&self, x: U256) -> I256 {
-        if x.is_zero() {
-            return I256::unchecked_from(0);
-        }
-        
-        // Convert U256 to f64 (treating as 18 decimal fixed point)
-        let x_u64 = x.to::<u64>();
-        let x_f64 = (x_u64 as f64) / 1e18;
-        
-        // Calculate sqrt using libm
-        let result_f64 = libm::sqrt(x_f64);
-        
-        // Convert back to 18 decimal fixed point
-        let result_scaled = (result_f64 * 1e18) as i64;
-        
-        I256::unchecked_from(result_scaled)
-    }    #[function_id("exp(int256)")]
-    fn exp(&self, x: I256) -> I256 {
-        // Convert I256 to f64 (treating as 18 decimal fixed point)
-        let x_i64 = x.as_i64();
-        let x_f64 = (x_i64 as f64) / 1e18;
-        
-        // Calculate exp using libm
-        let result_f64 = libm::exp(x_f64);
-        
-        // Convert back to 18 decimal fixed point
-        let result_scaled = (result_f64 * 1e18) as i64;
-        
-        I256::unchecked_from(result_scaled)
-    }    #[function_id("ln(uint256)")]
-    fn ln(&self, x: U256) -> I256 {        if x.is_zero() {
-            // Return a very negative number for ln(0)
-            return I256::unchecked_from(-1000000000000000000i64);
-        }
-        
-        // Convert U256 to f64 (treating as 18 decimal fixed point)
-        let x_u64 = x.to::<u64>();
-        let x_f64 = (x_u64 as f64) / 1e18;
-        
-        // Calculate ln using libm
-        let result_f64 = libm::log(x_f64);
-        
-        // Convert back to 18 decimal fixed point
-        let result_scaled = (result_f64 * 1e18) as i64;
-        
-        I256::unchecked_from(result_scaled)
-    }    #[function_id("log2(uint256)")]
-    fn log2(&self, x: U256) -> I256 {        if x.is_zero() {
-            // Return a very negative number for log2(0)
-            return I256::unchecked_from(-1000000000000000000i64);
-        }
-        
-        // Convert U256 to f64 (treating as 18 decimal fixed point)
-        let x_u64 = x.to::<u64>();
-        let x_f64 = (x_u64 as f64) / 1e18;
-        
-        // Calculate log2 using libm
-        let result_f64 = libm::log2(x_f64);
-        
-        // Convert back to 18 decimal fixed point
-        let result_scaled = (result_f64 * 1e18) as i64;
-        
-        I256::unchecked_from(result_scaled)
-    }    #[function_id("log10(uint256)")]
-    fn log10(&self, x: U256) -> I256 {        if x.is_zero() {
-            // Return a very negative number for log10(0)
-            return I256::unchecked_from(-1000000000000000000i64);
-        }
-        
-        // Convert U256 to f64 (treating as 18 decimal fixed point)
-        let x_u64 = x.to::<u64>();
-        let x_f64 = (x_u64 as f64) / 1e18;
-        
-        // Calculate log10 using libm
-        let result_f64 = libm::log10(x_f64);
-        
-        // Convert back to 18 decimal fixed point
-        let result_scaled = (result_f64 * 1e18) as i64;
-        
-        I256::unchecked_from(result_scaled)
+impl<SDK: SharedAPI> RouterAPI for ROUTER<SDK> {
+
+        #[function_id("echo_input(uint256)")]
+    fn echo_input(&self, x: U256) -> U256 {
+        use ultra_optimized_math::OptimizedMathApproximations;
+        let math = OptimizedMathApproximations::new();
+        math.echo_input(x)
+    }
+
+    #[function_id("double_input(uint256)")]
+    fn double_input(&self, x: U256) -> U256 {
+        use ultra_optimized_math::OptimizedMathApproximations;
+        let math = OptimizedMathApproximations::new();
+        math.double_input(x)
+    }
+
+    // Mathematical functions with ultra-optimization
+    #[function_id("sqrt(uint256)")]
+    fn sqrt(&self, x: U256) -> U256 {
+        use ultra_optimized_math::OptimizedMathApproximations;
+        let math = OptimizedMathApproximations::new();
+        math.rust_sqrt_uint256(x)
+    }
+
+    #[function_id("exp(uint256)")]
+    fn exp(&self, x: U256) -> U256 {
+        use ultra_optimized_math::OptimizedMathApproximations;
+        let math = OptimizedMathApproximations::new();
+        math.rust_exp_uint256(x)
+    }
+
+    #[function_id("ln(uint256)")]
+    fn ln(&self, x: U256) -> U256 {
+        use ultra_optimized_math::OptimizedMathApproximations;
+        let math = OptimizedMathApproximations::new();
+        math.rust_ln_uint256(x)
+    }
+
+    #[function_id("log2(uint256)")]
+    fn log2(&self, x: U256) -> U256 {
+        use ultra_optimized_math::OptimizedMathApproximations;
+        let math = OptimizedMathApproximations::new();
+        math.rust_log2_uint256(x)
+    }
+
+    #[function_id("log10(uint256)")]
+    fn log10(&self, x: U256) -> U256 {
+        use ultra_optimized_math::OptimizedMathApproximations;
+        let math = OptimizedMathApproximations::new();
+        math.rust_log10_uint256(x)
     }
 }
 
 impl<SDK: SharedAPI> ROUTER<SDK> {
     fn deploy(&self) {
-        // Deployment logic
+        // any custom deployment logic here
     }
 }
 

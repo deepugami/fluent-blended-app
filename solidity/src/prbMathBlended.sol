@@ -2,12 +2,11 @@
 pragma solidity 0.8.30;
 
 interface IPrbMathRust {
-    // Make sure type interfaces are defined here or else there will be a compiler error.
-    function sqrt(uint256 x) external view returns (int256);
-    function exp(int256 x) external view returns (int256);
-    function ln(uint256 x) external view returns (int256);
-    function log2(uint256 x) external view returns (int256);
-    function log10(uint256 x) external view returns (int256);
+    function sqrt(uint256 x) external view returns (uint256);
+    function exp(uint256 x) external view returns (uint256);
+    function ln(uint256 x) external view returns (uint256);
+    function log2(uint256 x) external view returns (uint256);
+    function log10(uint256 x) external view returns (uint256);
 }
 
 contract prbMathBlended {
@@ -17,29 +16,32 @@ contract prbMathBlended {
     constructor(address PrbMathRustAddress) {
         prbMathRust = IPrbMathRust(PrbMathRustAddress);
     }
-
+    
     function sqrt(uint256 x) external view returns (int256) {
-        int256 result = prbMathRust.sqrt(x);
-        return result;
+        uint256 result = prbMathRust.sqrt(x);
+        return int256(result);
     }
 
     function exp(int256 x) external view returns (int256) {
-        int256 result = prbMathRust.exp(x);
-        return result;
+        // Convert int256 to uint256 for the Rust function
+        // Handle negative values by returning minimal result
+        uint256 ux = x >= 0 ? uint256(x) : 0;
+        uint256 result = prbMathRust.exp(ux);
+        return int256(result);
     }
 
     function ln(uint256 x) external view returns (int256) {
-        int256 result = prbMathRust.ln(x);
-        return result;
+        uint256 result = prbMathRust.ln(x);
+        return int256(result);
     }
 
     function log2(uint256 x) external view returns (int256) {
-        int256 result = prbMathRust.log2(x);
-        return result;
+        uint256 result = prbMathRust.log2(x);
+        return int256(result);
     }
 
     function log10(uint256 x) external view returns (int256) {
-        int256 result = prbMathRust.log10(x);
-        return result;
+        uint256 result = prbMathRust.log10(x);
+        return int256(result);
     }
 }

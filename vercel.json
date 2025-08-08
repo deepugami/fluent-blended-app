@@ -1,17 +1,9 @@
 {
   "version": 2,
-  "github": {
-    "enabled": true,
-    "silent": true,
-    "autoJobCancelation": true
-  },
-  "git": {
-    "deploymentEnabled": {
-      "master": false,
-      "latest_branch": true
-    }
-  },
-  "framework": null,  "outputDirectory": "frontend",
+  "name": "fluent-blended-app",
+  "framework": null,
+  "public": false,
+  "functions": {},
   "builds": [
     {
       "src": "frontend/**",
@@ -27,5 +19,17 @@
       "src": "/",
       "dest": "/frontend/index.html"
     }
-  ]
+  ],
+  "outputDirectory": "frontend",
+  "github": {
+    "enabled": true,
+    "silent": true,
+    "autoJobCancelation": true
+  },
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "with_libm": true
+    }
+  }
 }
