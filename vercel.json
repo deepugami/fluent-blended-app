@@ -28,8 +28,7 @@
   },
   "git": {
     "deploymentEnabled": {
-      "main": true,
-      "with_libm": true
+      "without_libm": true
     }
   }
 }
